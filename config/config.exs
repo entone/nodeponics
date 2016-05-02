@@ -11,6 +11,7 @@ use Mix.Config
 # You can configure for your application as:
 #
 config :nodeponics, port: 5683
+config :nodeponics, multicast_address: {239, 255, 41, 11}
 #
 # And access this configuration in your application as:
 #
