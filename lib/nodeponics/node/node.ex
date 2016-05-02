@@ -1,0 +1,94 @@
+defmodule Nodeponics.Node do
+    use GenServer
+    require Logger
+
+    alias Nodeponics.UDPServer
+    alias Nodeponics.Node.Sensor
+    alias Nodeponics.Node.Actuator
+    alias Nodeponics.Node.Clock
+    alias Nodeponics.UDPServer.Message
+
+    @stats "stats"
+    @ack "ack"
+    @sensor_keys [:do, :ec, :humidity, :ph, :temperature]
+
+    defmodule Event do
+        defstruct [:type, :value]
+    end
+
+    defmodule Sensors do
+        defstruct [:do, :ec, :humidity, :ph, :temperature]
+    end
+
+    defmodule State do
+        defstruct [:id, :last_stats, :ip, :events, sensors: %Sensors{}]
+    end
+
+    def start_link(message) do
+        GenServer.start_link(__MODULE__, message, name: message.id)
+    end
+
+    def send_message(node, type, data) do
+        GenServer.call(node, {:send, type, data})
+    end
+
+    def init(message) do
+        Logger.info("Starting node: #{message.id}")
+        {:ok, events} = GenEvent.start_link([])
+        {:ok, _clock} = Clock.start_link(events)
+        add_event_handlers(events)
+        sensors = Enum.reduce(@sensor_keys, %Sensors{}, fn(x, acc) ->
+            Map.put(acc, x, Sensor.Analog.start_link(events, x))
+        end)
+        {:ok, %State{
+            :id => message.id,
+            :last_stats => :erlang.system_time(:milli_seconds),
+            :ip => message.ip,
+            :events => events,
+            :sensors => sensors,
+        }}
+    end
+
+    def add_event_handlers(events) do
+        GenEvent.add_mon_handler(events, Actuator.Fan, self())
+        GenEvent.add_mon_handler(events, Actuator.Light, self())
+        GenEvent.add_mon_handler(events, Actuator.Pump, self())
+    end
+
+    def handle_info(message = %Message{:type => @stats}, state) do
+        Logger.info "Node Stats: #{state.id}"
+        Enum.each(@sensor_keys, fn(x) ->
+            Sensor.Analog.update(
+                Map.get(state.sensors, x),
+                Map.get(message.data, Atom.to_string(x), 0)
+            )
+        end)
+        new_state = %State{state | :last_stats => :erlang.system_time(:milli_seconds)}
+        {:noreply, new_state}
+    end
+
+    def handle_info(message = %Message{:type => @ack}, state) do
+        GenEvent.notify(state.events, %Event{:type => message.data["type"]})
+        {:noreply, state}
+    end
+
+    def handle_info(_message = %Message{}, state) do
+        {:noreply, state}
+    end
+
+    def handle_info({:gen_event_EXIT, _handler, _reason}, state) do
+        add_event_handlers(state.events)
+        {:noreply, state}
+    end
+
+    def handle_call({:send, type, data}, _from, state) do
+        UDPServer.send_message(
+            %Message{
+                :type => type,
+                :data => data,
+                :ip => state.ip
+            }
+        )
+        {:reply, %{}, state}
+    end
+end
