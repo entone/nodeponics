@@ -9,7 +9,7 @@ defmodule Nodeponics.Node do
     alias Nodeponics.UDPServer.Message
 
     @stats "stats"
-    @ack "ack"
+    @init "ack"
     @sensor_keys [:do, :ec, :humidity, :ph, :temperature]
 
     defmodule Event do
@@ -32,6 +32,10 @@ defmodule Nodeponics.Node do
         GenServer.call(node, {:send, type, data})
     end
 
+    def ack do
+        Process.send_after(self, :ack, 100)
+    end
+
     def init(message) do
         Logger.info("Starting node: #{message.id}")
         {:ok, events} = GenEvent.start_link([])
@@ -40,6 +44,7 @@ defmodule Nodeponics.Node do
         sensors = Enum.reduce(@sensor_keys, %Sensors{}, fn(x, acc) ->
             Map.put(acc, x, Sensor.Analog.start_link(events, x))
         end)
+        ack
         {:ok, %State{
             :id => message.id,
             :last_stats => :erlang.system_time(:milli_seconds),
@@ -67,8 +72,8 @@ defmodule Nodeponics.Node do
         {:noreply, new_state}
     end
 
-    def handle_info(message = %Message{:type => @ack}, state) do
-        GenEvent.notify(state.events, %Event{:type => message.data["type"]})
+    def handle_info(message = %Message{:type => @init}, state) do
+        GenServer.call(self, {:send, "ack", true})
         {:noreply, state}
     end
 
@@ -81,12 +86,25 @@ defmodule Nodeponics.Node do
         {:noreply, state}
     end
 
+    def handle_info(:ack, state) do
+        UDPServer.send_message(
+            %Message{
+                :type => "ack",
+                :data => true,
+                :ip => state.ip,
+                :id => state.id
+            }
+        )
+        {:noreply, state}
+    end
+
     def handle_call({:send, type, data}, _from, state) do
         UDPServer.send_message(
             %Message{
                 :type => type,
                 :data => data,
-                :ip => state.ip
+                :ip => state.ip,
+                :id => state.id
             }
         )
         {:reply, %{}, state}

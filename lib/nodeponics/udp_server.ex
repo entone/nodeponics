@@ -3,6 +3,8 @@ defmodule Nodeponics.UDPServer do
     require Logger
     alias Nodeponics.DatagramSupervisor
 
+    @cipher_key Application.get_env(:nodeponics, :cipher_key) <> <<0>>
+
     defmodule Message do
         defstruct [:id, :type, :data, :ip, :port]
     end
@@ -26,10 +28,15 @@ defmodule Nodeponics.UDPServer do
     end
 
     def process(ip, port, data) do
-        data |> parse(ip, port) |> IO.inspect |> handle
+        data |> decrypt |> IO.inspect |> deserialize(ip, port) |> IO.inspect |> handle
     end
 
-    def parse(data, ip, port) do
+    def decrypt(data) when data |> is_binary do
+        << iv :: binary-size(16), message :: binary >> = data
+        :crypto.block_decrypt(:aes_cbc128, @cipher_key, iv, message) |> :binary.split(<<0>>) |> List.first
+    end
+
+    def deserialize(data, ip, port) do
         message = data |> Poison.decode!(as: %Message{})
         %Message{message | :ip => ip, :port => port, :id => String.to_atom(message.id)}
     end
@@ -66,7 +73,6 @@ defmodule Nodeponics.UDPServer do
     end
 
     def handle_info({:udp, socket, ip, port, data}, state) do
-        IO.inspect([ip, port, data])
         if ip != state.ip do
             Task.Supervisor.start_child(DatagramSupervisor, fn ->
                 process(ip, port, data)
@@ -77,7 +83,9 @@ defmodule Nodeponics.UDPServer do
     end
 
     def handle_call({:send, message}, _from, state) do
-        data = Poison.encode!(%Message{message | :ip => nil})
+        data = "|#{message.type}:#{message.data}:#{message.id}|"
+        Logger.info "Sending: #{data} to:"
+        IO.inspect(message.ip)
         :ok = :gen_udp.send(state.udp, message.ip, @port, data)
         {:reply, :ok, state}
     end

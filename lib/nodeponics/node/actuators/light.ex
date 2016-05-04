@@ -38,6 +38,11 @@ defmodule Nodeponics.Node.Actuator.Light do
         {:ok, new_state}
     end
 
+    def handle_event(event = %Event{:type => :humidity}, state) do
+        Node.send_message(state.parent, "light", "on")
+        {:ok, state}
+    end
+
     def handle_event(_event = %Event{:type => @lighton}, state) do
         Logger.info "Light ON"
         {:ok, %State{state | :status => :on}}
