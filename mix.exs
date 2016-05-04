@@ -10,12 +10,9 @@ defmodule Nodeponics.Mixfile do
      deps: deps]
   end
 
-  # Configuration for the OTP application
-  #
-  # Type "mix help compile.app" for more information
   def application do
     [
-        applications: [:logger],
+        applications: [:logger, :cowboy],
         mod: {Nodeponics, []}
     ]
   end
@@ -31,8 +28,9 @@ defmodule Nodeponics.Mixfile do
   # Type "mix help deps" for more examples and options
   defp deps do
     [
-        { :timex, "~> 2.1"},
-        { :poison, "~> 2.1" },
+        {:timex, "~> 2.1"},
+        {:poison, "~> 2.1"},
+        {:cowboy, "~> 1.0"},
     ]
   end
 end

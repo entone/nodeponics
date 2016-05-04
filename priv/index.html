@@ -1,0 +1,44 @@
+<html>
+    <head>
+        <title>Test</title>
+    </head>
+    <body>
+        <div id="messages"></div>
+        <button id="on" onclick="on();">ON</button>
+        <button id="off" onclick="off()">OFF</button>
+    </body>
+    <script>
+    websocket = new WebSocket('ws://localhost:8080/ws');
+    websocket.onopen = function(evt) {
+        console.log(evt);
+    };
+    websocket.onclose = function(evt) {
+        console.log(evt)
+    };
+    websocket.onmessage = function(evt) {
+        console.log(evt);
+        document.getElementById("messages").appendChild(document.createTextNode(evt.data));
+    };
+
+    function on(){
+        var message = {id:"1a0036000347343337373739", type:"light", "data":"on"}
+        websocket.send(JSON.stringify(message));
+    }
+
+    function off(){
+        var message = {id:"1a0036000347343337373739", type:"light", "data":"off"}
+        websocket.send(JSON.stringify(message));
+    }
+
+    var state = "on";
+    setInterval(function(){
+        var message = {id:"1a0036000347343337373739", type:"light", "data":state}
+        websocket.send(JSON.stringify(message));
+        if(state == "on"){
+            state = "off";
+        }else{
+            state = "on";
+        }
+    }, 10);
+    </script>
+</html>

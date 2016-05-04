@@ -28,7 +28,7 @@ defmodule Nodeponics.UDPServer do
     end
 
     def process(ip, port, data) do
-        data |> decrypt |> IO.inspect |> deserialize(ip, port) |> IO.inspect |> handle
+        data |> decrypt |> deserialize(ip, port) |> handle
     end
 
     def decrypt(data) when data |> is_binary do
@@ -59,6 +59,7 @@ defmodule Nodeponics.UDPServer do
             |> elem(1)
         ip = intfs[:addr]
         Logger.info "Accepting datagrams on #{:inet_parse.ntoa(ip)}:#{port}"
+        Logger.info "Cypher Key: #{@cipher_key}"
         udp_options = [
             :binary,
             active:          10,
@@ -83,7 +84,7 @@ defmodule Nodeponics.UDPServer do
     end
 
     def handle_call({:send, message}, _from, state) do
-        data = "|#{message.type}:#{message.data}:#{message.id}|"
+        data = "#{message.type}:#{message.data}:#{message.id}\n"
         Logger.info "Sending: #{data} to:"
         IO.inspect(message.ip)
         :ok = :gen_udp.send(state.udp, message.ip, @port, data)

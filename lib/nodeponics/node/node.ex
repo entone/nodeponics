@@ -32,6 +32,10 @@ defmodule Nodeponics.Node do
         GenServer.call(node, {:send, type, data})
     end
 
+    def light(node, bool) do
+        Nodeponics.Node.send_message(node, "light", bool)
+    end
+
     def ack do
         Process.send_after(self, :ack, 100)
     end
@@ -61,7 +65,7 @@ defmodule Nodeponics.Node do
     end
 
     def handle_info(message = %Message{:type => @stats}, state) do
-        Logger.info "Node Stats: #{state.id}"
+        #Logger.info "Node Stats: #{state.id}"
         Enum.each(@sensor_keys, fn(x) ->
             Sensor.Analog.update(
                 Map.get(state.sensors, x),

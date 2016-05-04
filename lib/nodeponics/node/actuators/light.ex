@@ -39,7 +39,6 @@ defmodule Nodeponics.Node.Actuator.Light do
     end
 
     def handle_event(event = %Event{:type => :humidity}, state) do
-        Node.send_message(state.parent, "light", "on")
         {:ok, state}
     end
 
@@ -54,7 +53,6 @@ defmodule Nodeponics.Node.Actuator.Light do
     end
 
     def handle_event(event = %Event{}, state) do
-        IO.inspect(event)
         {:ok, state}
     end
 end
