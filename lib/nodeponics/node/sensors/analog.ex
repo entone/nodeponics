@@ -26,6 +26,10 @@ defmodule Nodeponics.Node.Sensor.Analog do
         Agent.get(agent, fn(state) -> state.current end)
     end
 
+    def state(agent) do
+        Agent.get(agent, fn(state) -> state end)
+    end
+
     def update(agent, value) do
         Agent.update(agent, fn(state) ->
             GenEvent.notify(state.events, %Event{type: state.sensor_type, value: value})

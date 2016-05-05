@@ -32,8 +32,20 @@ defmodule Nodeponics.Node do
         GenServer.call(node, {:send, type, data})
     end
 
+    def add_event_handler(node, handler, parent) do
+        GenServer.call(node, {:add_handler, handler, parent})
+    end
+
+    def remove_event_handler(node, handler) do
+        GenServer.call(node, {:remove_handler, handler})
+    end
+
     def light(node, bool) do
         Nodeponics.Node.send_message(node, "light", bool)
+    end
+
+    def state(node) do
+        GenServer.call(node, :state)
     end
 
     def ack do
@@ -100,6 +112,21 @@ defmodule Nodeponics.Node do
             }
         )
         {:noreply, state}
+    end
+
+    def handle_call({:add_handler, handler, parent}, _from, state) do
+        {:reply, GenEvent.add_mon_handler(state.events, handler, parent), state}
+    end
+
+    def handle_call(:state, _from, state) do
+        IO.inspect GenEvent.which_handlers(state.events)
+        {:reply, %{}, state}
+    end
+
+    def handle_call({:remove_handler, handler}, _from, state) do
+        Logger.info "Removing Handler"
+        IO.inspect handler
+        {:reply, GenEvent.remove_handler(state.events, handler, []), state}
     end
 
     def handle_call({:send, type, data}, _from, state) do

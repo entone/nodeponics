@@ -3,12 +3,14 @@
         <title>Test</title>
     </head>
     <body>
-        <div id="messages"></div>
         <button id="on" onclick="on();">ON</button>
         <button id="off" onclick="off()">OFF</button>
+        <div id="messages"></div>
     </body>
     <script>
-    websocket = new WebSocket('ws://localhost:8080/ws');
+    var node_id = "230046000e47343432313031";
+    var user_id = Math.floor(Math.random()*10000000);
+    websocket = new WebSocket('ws://localhost:8080/ws?node_id='+node_id+'&user_id='+user_id);
     websocket.onopen = function(evt) {
         console.log(evt);
     };
@@ -17,28 +19,29 @@
     };
     websocket.onmessage = function(evt) {
         console.log(evt);
-        document.getElementById("messages").appendChild(document.createTextNode(evt.data));
+        var evnt = JSON.parse(evt.data);
+        document.getElementById("messages").appendChild(document.createTextNode(evnt.type+": "+evnt.value));
     };
 
     function on(){
-        var message = {id:"1a0036000347343337373739", type:"light", "data":"on"}
+        var message = {type:"light", "data":"on"}
         websocket.send(JSON.stringify(message));
     }
 
     function off(){
-        var message = {id:"1a0036000347343337373739", type:"light", "data":"off"}
+        var message = {type:"light", "data":"off"}
         websocket.send(JSON.stringify(message));
     }
 
     var state = "on";
-    setInterval(function(){
-        var message = {id:"1a0036000347343337373739", type:"light", "data":state}
-        websocket.send(JSON.stringify(message));
-        if(state == "on"){
-            state = "off";
-        }else{
-            state = "on";
-        }
-    }, 10);
+    //setInterval(function(){
+    //    var message = {id:id, type:"light", "data":state}
+    //    websocket.send(JSON.stringify(message));
+    //    if(state == "on"){
+    //        state = "off";
+    //    }else{
+    //        state = "on";
+    //    }
+    //}, 10);
     </script>
 </html>

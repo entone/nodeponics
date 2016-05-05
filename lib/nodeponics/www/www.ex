@@ -8,8 +8,8 @@ defmodule Nodeponics.WWW do
                 [
                     {"/", :cowboy_static, {:priv_file, :nodeponics, "index.html"}},
                     {"/static/[...]", :cowboy_static, {:priv_dir,  :nodeponics, "static_files"}},
-                    {"/api", APIHandler, []},
-                    {"/ws", WebsocketHandler, []}
+                    {"/api", WWW.APIHandler, []},
+                    {"/ws", WWW.Websocket, []}
             ]}
         ])
         {:ok, _} = :cowboy.start_http(:http,

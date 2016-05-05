@@ -1,46 +1,73 @@
-defmodule WebsocketHandler do
+defmodule Nodeponics.WWW.Websocket do
     @behaviour :cowboy_websocket_handler
+    require Logger
 
-    alias Nodeponics.UDPServer.Message
     alias Nodeponics.Node
+    alias Nodeponics.Node.Event
+    alias Nodeponics.UDPServer.Message
+
+    defmodule State do
+        defstruct [:node, :id]
+    end
+
+    defmodule NodeHandler do
+
+        defmodule State do
+            defstruct [:parent]
+        end
+
+        def init(parent) do
+            {:ok, %State{:parent => parent}}
+        end
+
+        def handle_event(event = %Event{}, state) do
+            send(state.parent, event)
+            {:ok, state}
+        end
+
+        def handle_event(event = %Event{:type => :clock}, state) do
+            {:ok, state}
+        end
+
+    end
 
     def init({tcp, http}, _req, _opts) do
         {:upgrade, :protocol, :cowboy_websocket}
     end
 
     def websocket_init(_TransportName, req, _opts) do
-        IO.puts "init.  Starting timer. PID is #{inspect(self())}"
-
+        {node_id, req} = :cowboy_req.qs_val("node_id", req)
+        {user_id, req} = :cowboy_req.qs_val("user_id", req)
+        id = "#{user_id}:#{node_id}"
         :erlang.start_timer(1000, self(), [])
-        {:ok, req, :undefined_state }
+        node = String.to_atom(node_id)
+        Node.add_event_handler(node, {NodeHandler, id}, self)
+        Node.state(node)
+        {:ok, req, %State{node: node, id: id}}
     end
 
-  # Required callback.  Put any essential clean-up here.
-    def websocket_terminate(_reason, _req, _state) do
+    def websocket_terminate(_reason, _req, state) do
+        Logger.info "Terminating Websocket #{state.id}"
+        Node.remove_event_handler(state.node, {NodeHandler, state.id})
         :ok
     end
 
     def websocket_handle({:text, data}, req, state) do
         message = data |> Poison.decode!(as: %Message{})
-        message = %{message | :id => String.to_atom(message.id)}
+        message = %{message | :id => state.node}
         Node.light(message.id, message.data)
         IO.inspect message
         {:reply, {:text, "yeah"}, req, state}
     end
 
-    # Fallback clause for websocket_handle.  If the previous one does not match
-    # this one just returns :ok without taking any action.  A proper app should
-    # probably intelligently handle unexpected messages.
     def websocket_handle(_data, req, state) do
         {:ok, req, state}
     end
 
-    # websocket_info is the required callback that gets called when erlang/elixir
-    # messages are sent to the handler process.  In this example, the only erlang
-    # messages we are passing are the :timeout messages from the timing loop.
-    #
-    # In a larger app various clauses of websocket_info might handle all kinds
-    # of messages and pass information out the websocket to the client.
+    def websocket_info(event = %Event{}, req, state) do
+        {:reply, {:text, Poison.encode!(event)}, req, state}
+    end
+
     def websocket_info({timeout, _ref, _foo}, req, state) do
         time = time_as_string()
 
