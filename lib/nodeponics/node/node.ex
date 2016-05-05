@@ -130,14 +130,14 @@ defmodule Nodeponics.Node do
     end
 
     def handle_call({:send, type, data}, _from, state) do
-        UDPServer.send_message(
-            %Message{
-                :type => type,
-                :data => data,
-                :ip => state.ip,
-                :id => state.id
-            }
-        )
+        message = %Message{
+            :type => type,
+            :data => data,
+            :ip => state.ip,
+            :id => state.id
+        }
+        UDPServer.send_message message
+        GenEvent.notify(state.events, %Event{:type => :node_message, :value => %Message{message | :ip => nil}})
         {:reply, %{}, state}
     end
 end
