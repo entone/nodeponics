@@ -1,6 +1,9 @@
-defmodule Nodeponics.WWW do
+defmodule Nodeponics.TCPServer do
 
-    alias Nodeponics.WWW
+    alias Nodeponics.API
+    alias Nodeponics.Websocket
+
+    @port Application.get_env(:nodeponics, :tcp_port)
 
     def start_link do
         dispatch = :cowboy_router.compile([
@@ -8,13 +11,13 @@ defmodule Nodeponics.WWW do
                 [
                     {"/", :cowboy_static, {:priv_file, :nodeponics, "index.html"}},
                     {"/static/[...]", :cowboy_static, {:priv_dir,  :nodeponics, "static_files"}},
-                    {"/api", WWW.APIHandler, []},
-                    {"/ws", WWW.Websocket, []}
+                    {"/api", API.APIHandler, []},
+                    {"/ws", Websocket.Node, []}
             ]}
         ])
         {:ok, _} = :cowboy.start_http(:http,
             100,
-            [{:port, 8080}],
+            [{:port, @port}],
             [{ :env, [{:dispatch, dispatch}]}]
         )
     end

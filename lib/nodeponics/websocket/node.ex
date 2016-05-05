@@ -1,4 +1,4 @@
-defmodule Nodeponics.WWW.Websocket do
+defmodule Nodeponics.Websocket.Node do
     @behaviour :cowboy_websocket_handler
     require Logger
 
@@ -10,7 +10,7 @@ defmodule Nodeponics.WWW.Websocket do
         defstruct [:node, :id]
     end
 
-    defmodule NodeHandler do
+    defmodule Handler do
 
         defmodule State do
             defstruct [:parent]
@@ -20,12 +20,12 @@ defmodule Nodeponics.WWW.Websocket do
             {:ok, %State{:parent => parent}}
         end
 
-        def handle_event(event = %Event{}, state) do
-            send(state.parent, event)
+        def handle_event(event = %Event{:type => :clock}, state) do
             {:ok, state}
         end
 
-        def handle_event(event = %Event{:type => :clock}, state) do
+        def handle_event(event = %Event{}, state) do
+            send(state.parent, event)
             {:ok, state}
         end
 
@@ -41,7 +41,7 @@ defmodule Nodeponics.WWW.Websocket do
         id = "#{user_id}:#{node_id}"
         :erlang.start_timer(1000, self(), [])
         node = String.to_atom(node_id)
-        Node.add_event_handler(node, {NodeHandler, id}, self)
+        Node.add_event_handler(node, {Handler, id}, self)
         Node.state(node)
         {:ok, req, %State{node: node, id: id}}
     end
@@ -72,7 +72,7 @@ defmodule Nodeponics.WWW.Websocket do
         time = time_as_string()
 
         # encode a json reply in the variable 'message'
-        { :ok, message } = Poison.encode(%{ time: time})
+        { :ok, message } = Poison.encode(%Event{:type => :time, :value => time})
 
 
         # set a new timer to send a :timeout message back to this process a second

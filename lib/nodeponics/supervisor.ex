@@ -10,7 +10,7 @@ defmodule Nodeponics.Supervisor do
     def init(:ok) do
         children = [
             worker(Nodeponics.UDPServer, []),
-            worker(Nodeponics.WWW, []),
+            worker(Nodeponics.TCPServer, []),
             supervisor(Task.Supervisor, [[name: Nodeponics.DatagramSupervisor]]),
             supervisor(Nodeponics.NodeSupervisor, []),
         ]
