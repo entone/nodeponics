@@ -21,7 +21,7 @@ defmodule Nodeponics.Node do
     end
 
     defmodule State do
-        defstruct [:id, :last_stats, :ip, :events, :camera, sensors: %Sensors{}]
+        defstruct [:id, :last_stats, :ip, :events, :camera, :image, sensors: %Sensors{}]
     end
 
     def start_link(message) do

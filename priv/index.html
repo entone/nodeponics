@@ -19,10 +19,41 @@
         <div id="messages"></div>
     </body>
     <script>
+    var events = [];
+    var node_id = "1a0036000347343337373739";
+    var user_id = Math.floor(Math.random()*10000000);
+
+    function on(){
+        var message = {type:"light", "data":"on"}
+        websocket.send(JSON.stringify(message));
+    }
+
+    function off(){
+        var message = {type:"light", "data":"off"}
+        websocket.send(JSON.stringify(message));
+    }
+
+    function display_event(evt){
+        //console.log(evt);
+        var messages = document.getElementById("messages");
+        var len = messages.childNodes.length;
+        if(len > events.length) messages.removeChild(messages.firstChild);
+        var evnt = JSON.parse(evt.data);
+        var v = evnt.value;
+        try{
+            v = JSON.stringify(v);
+        }catch(e){
+            v = v;
+        }
+        var e = document.createElement("div");
+        e.innerHTML = evnt.type+": "+v;
+        messages.appendChild(e);
+        e.style.opacity = 0;
+        window.getComputedStyle(e).opacity;
+        e.style.opacity = 1;
+    }
+
     function init(e){
-        var events = [];
-        var node_id = "230046000e47343432313031";
-        var user_id = Math.floor(Math.random()*10000000);
         document.getElementById("stream").src = "http://localhost:8080/stream?node_id="+node_id+"&user_id="+user_id;
         websocket = new WebSocket('ws://localhost:8080/ws?node_id='+node_id+'&user_id='+user_id);
         websocket.onopen = function(evt) {
@@ -37,35 +68,7 @@
             display_event(evt);
         };
 
-        function on(){
-            var message = {type:"light", "data":"on"}
-            websocket.send(JSON.stringify(message));
-        }
 
-        function off(){
-            var message = {type:"light", "data":"off"}
-            websocket.send(JSON.stringify(message));
-        }
-
-        function display_event(evt){
-            console.log(evt);
-            var messages = document.getElementById("messages");
-            var len = messages.childNodes.length;
-            if(len > events.length) messages.removeChild(messages.firstChild);
-            var evnt = JSON.parse(evt.data);
-            var v = evnt.value;
-            try{
-                v = JSON.stringify(v);
-            }catch(e){
-                v = v;
-            }
-            var e = document.createElement("div");
-            e.innerHTML = evnt.type+": "+v;
-            messages.appendChild(e);
-            e.style.opacity = 0;
-            window.getComputedStyle(e).opacity;
-            e.style.opacity = 1;
-        }
 
         var state = "on";
         //setInterval(function(){

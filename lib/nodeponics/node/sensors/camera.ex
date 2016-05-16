@@ -22,6 +22,8 @@ defmodule Nodeponics.Node.Sensor.Camera do
                 body
             {{_, _, _}, _headers, body} ->
                 body
+            {:error, _} ->
+                ''
          end
     end
 
