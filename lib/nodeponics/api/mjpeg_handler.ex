@@ -62,12 +62,7 @@ defmodule Nodeponics.API.MJPEGHandler do
         msg = image_headers(event.value)
             <> event.value
             <> delimiter
-        case :cowboy_req.chunk(msg, req) do
-            :ok ->
-                Logger.info "chunk sent"
-            {:error, reason} ->
-                Logger.info reason
-        end
+        :cowboy_req.chunk(msg, req)
         {:loop, req, state}
     end
 

@@ -34,7 +34,7 @@
     }
 
     function display_event(evt){
-        //console.log(evt);
+        console.log(evt.data);
         var messages = document.getElementById("messages");
         var len = messages.childNodes.length;
         if(len > events.length) messages.removeChild(messages.firstChild);

@@ -58,10 +58,10 @@ defmodule Nodeponics.Websocket.Node do
 
     def websocket_handle({:text, data}, req, state) do
         message = data |> Poison.decode!(as: %Message{})
-        message = %{message | :id => state.node}
+        message = %Message{message | :id => state.node}
         Node.light(message.id, message.data)
-        IO.inspect message
-        {:reply, {:text, "yeah"}, req, state}
+        resp = %Message{:type => :response, :data => :ok} |> Poison.encode!
+        {:reply, {:text, resp}, req, state}
     end
 
     def websocket_handle(_data, req, state) do
