@@ -6,6 +6,8 @@ defmodule Nodeponics.Websocket.Node do
     alias Nodeponics.Node.Event
     alias Nodeponics.UDPServer.Message
 
+    @light "light"
+
     defmodule State do
         defstruct [:node, :id]
     end
@@ -59,9 +61,13 @@ defmodule Nodeponics.Websocket.Node do
     def websocket_handle({:text, data}, req, state) do
         message = data |> Poison.decode!(as: %Message{})
         message = %Message{message | :id => state.node}
-        Node.light(message.id, message.data)
+        handle_message(message, state)
         resp = %Message{:type => :response, :data => :ok} |> Poison.encode!
         {:reply, {:text, resp}, req, state}
+    end
+
+    def handle_message(message = %Message{:type => @light}, state) do
+        Node.light(message.id, message.data)
     end
 
     def websocket_handle(_data, req, state) do

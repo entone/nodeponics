@@ -1,6 +1,6 @@
 defmodule Nodeponics.NodeSupervisor do
     use Supervisor
-
+    require Logger
     @name __MODULE__
 
     def start_link do
@@ -15,6 +15,7 @@ defmodule Nodeponics.NodeSupervisor do
     end
 
     def start_node(message) do
+        Logger.info "Starting Node #{inspect message}"
         Supervisor.start_child(@name, [message])
     end
 end

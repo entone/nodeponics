@@ -44,6 +44,10 @@ defmodule Nodeponics.Node do
         Nodeponics.Node.send_message(node, "light", bool)
     end
 
+    def id(node) do
+        GenServer.call(node, :id)
+    end
+
     def current_image(node) do
         GenServer.call(node, :current_image)
     end
@@ -138,6 +142,10 @@ defmodule Nodeponics.Node do
         Logger.info "Removing Handler"
         IO.inspect handler
         {:reply, GenEvent.remove_handler(state.events, handler, []), state}
+    end
+
+    def handle_call(:id, _from, state) do
+        {:reply, state.id, state}
     end
 
     def handle_call({:send, type, data}, _from, state) do
