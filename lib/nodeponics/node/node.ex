@@ -21,7 +21,7 @@ defmodule Nodeponics.Node do
     end
 
     defmodule State do
-        defstruct [:id, :last_stats, :ip, :events, sensors: %Sensors{}]
+        defstruct [:id, :last_stats, :ip, :events, :camera, sensors: %Sensors{}]
     end
 
     def start_link(message) do
@@ -44,6 +44,10 @@ defmodule Nodeponics.Node do
         Nodeponics.Node.send_message(node, "light", bool)
     end
 
+    def current_image(node) do
+        GenServer.call(node, :current_image)
+    end
+
     def state(node) do
         GenServer.call(node, :state)
     end
@@ -53,9 +57,11 @@ defmodule Nodeponics.Node do
     end
 
     def init(message) do
+        url = 'http://entropealabs.net/camera/front.jpg'
         Logger.info("Starting node: #{message.id}")
         {:ok, events} = GenEvent.start_link([])
         {:ok, _clock} = Clock.start_link(events)
+        {:ok, camera} = Sensor.Camera.start_link(url, events)
         add_event_handlers(events)
         sensors = Enum.reduce(@sensor_keys, %Sensors{}, fn(x, acc) ->
             Map.put(acc, x, Sensor.Analog.start_link(events, x))
@@ -67,6 +73,7 @@ defmodule Nodeponics.Node do
             :ip => message.ip,
             :events => events,
             :sensors => sensors,
+            :camera => camera,
         }}
     end
 
@@ -116,6 +123,10 @@ defmodule Nodeponics.Node do
 
     def handle_call({:add_handler, handler, parent}, _from, state) do
         {:reply, GenEvent.add_mon_handler(state.events, handler, parent), state}
+    end
+
+    def handle_call(:current_image, _from, state) do
+        {:reply, Sensor.Camera.current_image(state.camera), state}
     end
 
     def handle_call(:state, _from, state) do

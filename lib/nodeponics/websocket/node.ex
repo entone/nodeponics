@@ -24,6 +24,10 @@ defmodule Nodeponics.Websocket.Node do
             {:ok, state}
         end
 
+        def handle_event(event = %Event{:type => :image}, state) do
+            {:ok, state}
+        end
+
         def handle_event(event = %Event{}, state) do
             send(state.parent, event)
             {:ok, state}
