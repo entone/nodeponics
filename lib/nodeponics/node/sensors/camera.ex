@@ -4,7 +4,7 @@ defmodule Nodeponics.Node.Sensor.Camera do
     alias Nodeponics.Node.Event
 
     defmodule State do
-        defstruct [:url, :image, :events, refresh: 0]
+        defstruct [:url, :image, :events, refresh: 1000]
     end
 
     def start_link(url, events) do
@@ -15,16 +15,20 @@ defmodule Nodeponics.Node.Sensor.Camera do
         GenServer.call(camera, :current_image)
     end
 
-    def get_image(url) do
-        {:ok, resp} = :httpc.request(:get, {url, []}, [], [body_format: :binary])
-         case resp do
-            {{_, 200, 'OK'}, _headers, body} ->
-                body
-            {{_, _, _}, _headers, body} ->
-                body
-            {:error, _} ->
-                ''
-         end
+    def get_image(url, state) do
+        case :httpc.request(:get, {url, []}, [], [body_format: :binary]) do
+            {:ok, resp} ->
+                case resp do
+                    {{_, 200, 'OK'}, _headers, body} ->
+                        body
+                    {{_, _, _}, _headers, body} ->
+                        Logger.info "Error getting image. #{body}"
+                        state.image
+                end
+            {:error, :socket_closed_remotely} ->
+                Logger.info "Error getting image. Socket closed"
+                state.image
+        end
     end
 
     def get_images(refresh) do
@@ -43,7 +47,7 @@ defmodule Nodeponics.Node.Sensor.Camera do
     end
 
     def handle_info(:image, state) do
-        new_state = %State{state | :image => get_image(state.url)}
+        new_state = %State{state | :image => get_image(state.url, state)}
         GenEvent.notify(state.events, %Event{:type => :image, :value => new_state.image})
         get_images(state.refresh)
         {:noreply, new_state}

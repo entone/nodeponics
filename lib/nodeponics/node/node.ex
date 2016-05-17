@@ -61,7 +61,8 @@ defmodule Nodeponics.Node do
     end
 
     def init(message) do
-        url = 'http://entropealabs.net/camera/front.jpg'
+        webcams = ['http://entropealabs.net/camera/front.jpg', 'http://www.glerl.noaa.gov/metdata/chi/chi1.jpg']
+        url = Enum.random(webcams)
         Logger.info("Starting node: #{message.id}")
         {:ok, events} = GenEvent.start_link([])
         {:ok, _clock} = Clock.start_link(events)
