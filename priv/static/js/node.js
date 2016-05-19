@@ -32,7 +32,7 @@ node.prototype.dom = function(parent){
 
 node.prototype.websocket = function(){
     var self = this;
-    this.ws = new WebSocket('ws://localhost:8080/ws?node_id='+this.id+'&user_id='+this.user_id);
+    this.ws = new WebSocket('ws:/'+window.location.host+'/ws?node_id='+this.id+'&user_id='+this.user_id);
     this.ws.onopen = function(evt) {
         console.log(evt);
     };
@@ -79,5 +79,5 @@ node.prototype.display_event = function(evt){
 }
 
 node.prototype.stream = function(){
-    $("#stream"+this.id).attr("src", "http://localhost:8080/stream?node_id="+this.id+"&user_id="+this.user_id);
+    $("#stream"+this.id).attr("src", "/stream?node_id="+this.id+"&user_id="+this.user_id);
 }

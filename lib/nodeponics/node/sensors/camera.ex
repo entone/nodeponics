@@ -4,7 +4,7 @@ defmodule Nodeponics.Node.Sensor.Camera do
     alias Nodeponics.Node.Event
 
     defmodule State do
-        defstruct [:url, :image, :events, refresh: 1000]
+        defstruct [:url, :events, image: "0", refresh: 1000]
     end
 
     def start_link(url, events) do
@@ -25,8 +25,8 @@ defmodule Nodeponics.Node.Sensor.Camera do
                         Logger.info "Error getting image. #{body}"
                         state.image
                 end
-            {:error, :socket_closed_remotely} ->
-                Logger.info "Error getting image. Socket closed"
+            {:error, _other} ->
+                Logger.info "Error getting image."
                 state.image
         end
     end

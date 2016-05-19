@@ -46,6 +46,7 @@ defmodule Nodeponics.UDPServer do
             nil -> Nodeponics.NodeSupervisor.start_node(message)
             _ -> true
         end
+        Nodeponics.Node.update_state(message.id, message)
         send(message.id, message)
     end
 

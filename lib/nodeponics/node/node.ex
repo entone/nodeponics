@@ -82,10 +82,18 @@ defmodule Nodeponics.Node do
         }}
     end
 
+    def update_state(node, message) do
+        GenServer.call(node, {:update_state, message})
+    end
+
     def add_event_handlers(events) do
         GenEvent.add_mon_handler(events, Actuator.Fan, self())
         GenEvent.add_mon_handler(events, Actuator.Light, self())
         GenEvent.add_mon_handler(events, Actuator.Pump, self())
+    end
+
+    def handle_call({:update_state, message}, _from, state) do
+        {:reply, :ok, %State{state | :ip => message.ip}}
     end
 
     def handle_info(message = %Message{:type => @stats}, state) do
@@ -97,6 +105,7 @@ defmodule Nodeponics.Node do
             )
         end)
         new_state = %State{state | :last_stats => :erlang.system_time(:milli_seconds)}
+        ack
         {:noreply, new_state}
     end
 
