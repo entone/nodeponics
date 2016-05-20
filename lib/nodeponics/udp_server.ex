@@ -59,7 +59,6 @@ defmodule Nodeponics.UDPServer do
             end)
             |> elem(1)
         ip = intfs[:addr]
-        Logger.info "Accepting datagrams on #{:inet_parse.ntoa(ip)}:#{port}"
         Logger.info "Cypher Key: #{@cipher_key}"
         udp_options = [
             :binary,
