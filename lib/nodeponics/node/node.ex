@@ -7,9 +7,11 @@ defmodule Nodeponics.Node do
     alias Nodeponics.Node.Actuator
     alias Nodeponics.Node.Clock
     alias Nodeponics.UDPServer.Message
+    alias :mnesia, as: Mnesia
 
     @stats "stats"
-    @init "ack"
+    @light "light"
+    @update_camera "update_camera"
 
     @sensor_keys [:do, :ec, :humidity, :ph, :temperature]
 
@@ -30,7 +32,7 @@ defmodule Nodeponics.Node do
     end
 
     def send_message(node, type, data) do
-        GenServer.call(node, {:send, type, data})
+        GenServer.cast(node, {:send, type, data})
     end
 
     def add_event_handler(node, handler, parent) do
@@ -41,30 +43,20 @@ defmodule Nodeponics.Node do
         GenServer.call(node, {:remove_handler, handler})
     end
 
-    def light(node, bool) do
-        Nodeponics.Node.send_message(node, "light", bool)
-    end
-
     def id(node) do
         GenServer.call(node, :id)
     end
 
-    def current_image(node) do
-        GenServer.call(node, :current_image)
-    end
-
-    def state(node) do
-        GenServer.call(node, :state)
-    end
-
     def ack do
-        Process.send_after(self, :ack, 100)
+        GenServer.cast(self, :ack)
     end
 
     def init(message) do
         webcams = ['http://entropealabs.net/camera/front.jpg', 'http://www.glerl.noaa.gov/metdata/chi/chi1.jpg']
         url = Enum.random(webcams)
         Logger.info("Starting node: #{message.id}")
+        Mnesia.create_table(:node, [attributes: [:id, :camera]])
+        Mnesia.dirty_write({:node, message.id, url})
         {:ok, events} = GenEvent.start_link([])
         {:ok, _clock} = Clock.start_link(events)
         {:ok, camera} = Sensor.Camera.start_link(url, events)
@@ -93,10 +85,6 @@ defmodule Nodeponics.Node do
         GenEvent.add_mon_handler(events, Actuator.Pump, self())
     end
 
-    def handle_call({:update_state, message}, _from, state) do
-        {:reply, :ok, %State{state | :ip => message.ip}}
-    end
-
     def handle_info(message = %Message{:type => @stats}, state) do
         #Logger.info "Node Stats: #{state.id}"
         Enum.each(@sensor_keys, fn(x) ->
@@ -110,13 +98,22 @@ defmodule Nodeponics.Node do
         {:noreply, new_state}
     end
 
-    def handle_info(message = %Message{:type => @init}, state) do
-        GenServer.call(self, {:send, "ack", true})
+    def handle_info(message = %Message{:type => @light}, state) do
+        GenServer.cast(message.id, {:send, @light, message.data})
+        {:noreply, state}
+        #Nodeponics.Node.send_message(message.id, "light", message.data)
+    end
+
+    def handle_info(message = %Message{:type => @update_camera}, state) do
+        update_camera = fn ->
+            Mnesia.write({:node, message.id, message.data})
+        end
+        Mnesia.transaction(update_camera) |> IO.inspect
+        Mnesia.dirty_read({:node, message.id})
         {:noreply, state}
     end
 
     def handle_info(message = %Message{}, state) do
-        IO.inspect message
         GenEvent.notify(state.events, %Event{:type => message.type, :value => message.data, :id => message.id})
         {:noreply, state}
     end
@@ -126,24 +123,12 @@ defmodule Nodeponics.Node do
         {:noreply, state}
     end
 
-    def handle_info(:ack, state) do
-        UDPServer.send_message(
-            %Message{
-                :type => "ack",
-                :data => true,
-                :ip => state.ip,
-                :id => state.id
-            }
-        )
-        {:noreply, state}
+    def handle_call({:update_state, message}, _from, state) do
+        {:reply, :ok, %State{state | :ip => message.ip}}
     end
 
     def handle_call({:add_handler, handler, parent}, _from, state) do
         {:reply, GenEvent.add_mon_handler(state.events, handler, parent), state}
-    end
-
-    def handle_call(:current_image, _from, state) do
-        {:reply, Sensor.Camera.current_image(state.camera), state}
     end
 
     def handle_call(:state, _from, state) do
@@ -161,7 +146,19 @@ defmodule Nodeponics.Node do
         {:reply, state.id, state}
     end
 
-    def handle_call({:send, type, data}, _from, state) do
+    def handle_cast(:ack, state) do
+        UDPServer.send_message(
+            %Message{
+                :type => "ack",
+                :data => true,
+                :ip => state.ip,
+                :id => state.id
+            }
+        )
+        {:noreply, state}
+    end
+
+    def handle_cast({:send, type, data}, state) do
         message = %Message{
             :type => type,
             :data => data,
@@ -170,6 +167,6 @@ defmodule Nodeponics.Node do
         }
         UDPServer.send_message(message)
         GenEvent.notify(state.events, %Event{:type => :node_message, :value => %Message{message | :ip => nil}})
-        {:reply, %{}, state}
+        {:noreply, state}
     end
 end

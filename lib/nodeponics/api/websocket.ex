@@ -6,7 +6,6 @@ defmodule Nodeponics.API.Websocket do
     alias Nodeponics.Node.Event
     alias Nodeponics.UDPServer.Message
 
-    @light "light"
     @node "node"
 
     defmodule State do
@@ -64,9 +63,8 @@ defmodule Nodeponics.API.Websocket do
         {:reply, {:text, resp}, req, new_state}
     end
 
-    def handle_message(message = %Message{:type => @light}, state) do
-        Node.light(message.id, message.data)
-        state
+    def websocket_handle(_data, req, state) do
+        {:ok, req, state}
     end
 
     def handle_message(message = %Message{:type => @node}, state) do
@@ -75,8 +73,11 @@ defmodule Nodeponics.API.Websocket do
         %State{state | :nodes => Enum.into(state.nodes, [message.id])}
     end
 
-    def websocket_handle(_data, req, state) do
-        {:ok, req, state}
+    def handle_message(message = %Message{}, state) do
+        IO.inspect message
+        Logger.info "Sending to: #{message.id}"
+        send(message.id, message)
+        state
     end
 
     def websocket_info(event = %Event{}, req, state) do
