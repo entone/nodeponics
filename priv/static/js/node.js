@@ -1,5 +1,12 @@
-function node(id, parent, user_id){
+function Message(type, data, id){
+    this.type = type;
+    this.data = data;
     this.id = id;
+}
+
+function Node(id, parent, user_id, websocket){
+    this.id = id;
+    this.ws = websocket;
     this.user_id = user_id;
     this.events = [];
     this.dom(parent);
@@ -7,7 +14,7 @@ function node(id, parent, user_id){
     this.stream();
 }
 
-node.prototype.dom = function(parent){
+Node.prototype.dom = function(parent){
     var elem = "<div class=\"col-sm-6 col-md-6\"> \
             <div class=\"thumbnail\"> \
                 <img id=\"stream"+this.id+"\"> \
@@ -30,35 +37,32 @@ node.prototype.dom = function(parent){
     });
 }
 
-node.prototype.websocket = function(){
+Node.prototype.websocket = function(){
     var self = this;
-    this.ws = new WebSocket('ws:/'+window.location.host+'/ws?node_id='+this.id+'&user_id='+this.user_id);
-    this.ws.onopen = function(evt) {
-        console.log(evt);
-    };
-    this.ws.onclose = function(evt) {
-        console.log(evt)
-    };
+    this.send("node", "");
     this.ws.onmessage = function(evt) {
-        self.events.push(evt);
+        var evnt = JSON.parse(evt.data);
+        if(evnt.id != self.id) return;
+        self.events.push(evnt);
         if(self.events.length > 10) self.events.shift();
-        self.display_event(evt);
+        self.display_event(evnt);
     };
 }
 
-node.prototype.on = function(){
-    var message = {type:"light", "data":"on"}
-    this.ws.send(JSON.stringify(message));
+Node.prototype.send = function(type, data){
+    var m = new Message(type, data, this.id);
+    this.ws.send(JSON.stringify(m));
 }
 
-node.prototype.off = function(){
-    var message = {type:"light", "data":"off"}
-    this.ws.send(JSON.stringify(message));
+Node.prototype.on = function(){
+    this.send("light", "on");
 }
 
-node.prototype.display_event = function(evt){
-    console.log(evt.data);
-    var evnt = JSON.parse(evt.data);
+Node.prototype.off = function(){
+    this.send("light", "off");
+}
+
+Node.prototype.display_event = function(evnt){
     if(evnt.type == "node_message" || evnt.type == "response") return;
     var messages = document.getElementById("messages"+this.id);
     var len = messages.childNodes.length;
@@ -78,6 +82,6 @@ node.prototype.display_event = function(evt){
     e.style.opacity = 1;
 }
 
-node.prototype.stream = function(){
+Node.prototype.stream = function(){
     $("#stream"+this.id).attr("src", "/stream?node_id="+this.id+"&user_id="+this.user_id);
 }

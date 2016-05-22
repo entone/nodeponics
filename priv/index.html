@@ -28,7 +28,13 @@
     </body>
     <script>
     var user_id = Math.floor(Math.random()*10000000);
-
+    var ws = new WebSocket('ws:/'+window.location.host+'/ws?user_id='+this.user_id);
+    ws.onopen = function(evt) {
+        console.log(evt);
+    };
+    ws.onclose = function(evt) {
+        console.log(evt)
+    };
     $(document).ready(function(){
         $.get("/nodes?user_id="+user_id, function(e){
             nodes = e.nodes;
@@ -38,7 +44,7 @@
 
     function init_nodes(){
         for(var n in nodes){
-            var n = new node(nodes[n], "#nodes", user_id);
+            var n = new Node(nodes[n], "#nodes", user_id, ws);
         }
     }
 

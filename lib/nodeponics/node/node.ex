@@ -10,10 +10,11 @@ defmodule Nodeponics.Node do
 
     @stats "stats"
     @init "ack"
+
     @sensor_keys [:do, :ec, :humidity, :ph, :temperature]
 
     defmodule Event do
-        defstruct [:type, :value]
+        defstruct [:type, :value, :id]
     end
 
     defmodule Sensors do
@@ -114,7 +115,9 @@ defmodule Nodeponics.Node do
         {:noreply, state}
     end
 
-    def handle_info(_message = %Message{}, state) do
+    def handle_info(message = %Message{}, state) do
+        IO.inspect message
+        GenEvent.notify(state.events, %Event{:type => message.type, :value => message.data, :id => message.id})
         {:noreply, state}
     end
 
@@ -165,7 +168,7 @@ defmodule Nodeponics.Node do
             :ip => state.ip,
             :id => state.id
         }
-        UDPServer.send_message message
+        UDPServer.send_message(message)
         GenEvent.notify(state.events, %Event{:type => :node_message, :value => %Message{message | :ip => nil}})
         {:reply, %{}, state}
     end
