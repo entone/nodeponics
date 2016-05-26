@@ -8,8 +8,8 @@ defmodule Nodeponics.Node.Actuator.Light do
     alias Nodeponics.Node.Event
     alias Nodeponics.UDPServer
 
-    @start_hour 1
-    @end_hour 18
+    @start_hour 11
+    @end_hour 1
     @lighton "lighton"
     @lightoff "lightoff"
 

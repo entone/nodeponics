@@ -11,8 +11,7 @@ defmodule Nodeponics.TCPServer do
                 [
                     {"/", :cowboy_static, {:priv_file, :nodeponics, "index.html"}},
                     {"/static/[...]", :cowboy_static, {:priv_dir,  :nodeponics, "static"}},
-                    {"/api", API.APIHandler, []},
-                    {"/ws", Websocket.Node, []},
+                    {"/ws", API.Websocket, []},
                     {"/stream", API.MJPEGHandler, []},
                     {"/nodes", API.Node, []},
             ]}
@@ -20,7 +19,7 @@ defmodule Nodeponics.TCPServer do
         {:ok, _} = :cowboy.start_http(:http,
             100,
             [{:port, @port}],
-            [{ :env, [{:dispatch, dispatch}]}]
+            [{:env, [{:dispatch, dispatch}]}]
         )
     end
 end

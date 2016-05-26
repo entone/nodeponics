@@ -11,10 +11,6 @@ defmodule Nodeponics.Node.Sensor.Camera do
         GenServer.start_link(__MODULE__, [url, events])
     end
 
-    def current_image(camera) do
-        GenServer.call(camera, :current_image)
-    end
-
     def get_image(url, state) do
         case :httpc.request(:get, {url, []}, [], [body_format: :binary]) do
             {:ok, resp} ->
@@ -40,10 +36,6 @@ defmodule Nodeponics.Node.Sensor.Camera do
         Logger.info("Camera Started: #{state.url}")
         get_images(state.refresh)
         {:ok, state}
-    end
-
-    def handle_call(:current_image, _from, state) do
-        {:reply, state.image, state}
     end
 
     def handle_info(:image, state) do

@@ -1,6 +1,7 @@
 defmodule Nodeponics do
     use Application
     require Logger
+    alias :mnesia, as: Mnesia
 
     @name __MODULE__
     @interface "wlan0"
@@ -9,6 +10,8 @@ defmodule Nodeponics do
     @key_management :"WPA-PSK"
 
     def start(_type, _args) do
+        Mnesia.create_schema([node])
+        Mnesia.start()
         Nodeponics.Supervisor.start_link()
         Movi.add_handler(Nodeponics.Voice.Handler)
         Nerves.InterimWiFi.setup(@interface, ssid: @ssid, key_mgmt: @key_management, psk: @psk)
