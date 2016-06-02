@@ -14,6 +14,7 @@ defmodule Nodeponics.Node do
     @update_camera "update_camera"
 
     @sensor_keys [:do, :ec, :humidity, :ph, :temperature]
+    @actuator_keys [:fan, :light, :pump]
 
     defmodule Event do
         defstruct [:type, :value, :id]
@@ -23,8 +24,12 @@ defmodule Nodeponics.Node do
         defstruct [:do, :ec, :humidity, :ph, :temperature]
     end
 
+    defmodule Actuators do
+        defstruct [fan: Actuator.Fan, light: Actuator.Light, pump: Actuator.Pump]
+    end
+
     defmodule State do
-        defstruct [:id, :last_stats, :ip, :events, :camera, :image, sensors: %Sensors{}]
+        defstruct [:id, :last_stats, :ip, :events, :camera, :image, sensors: %Sensors{}, actuators: %Actuators{}]
     end
 
     def start_link(message) do
@@ -55,12 +60,12 @@ defmodule Nodeponics.Node do
         webcams = ['http://entropealabs.net/camera/front.jpg', 'http://www.glerl.noaa.gov/metdata/chi/chi1.jpg']
         url = Enum.random(webcams)
         Logger.info("Starting node: #{message.id}")
-        Mnesia.create_table(:node, [attributes: [:id, :camera]])
-        Mnesia.dirty_write({:node, message.id, url})
+        #Mnesia.create_table(:node, [attributes: [:id, :camera]])
+        #Mnesia.dirty_write({:node, message.id, url})
         {:ok, events} = GenEvent.start_link([])
         {:ok, _clock} = Clock.start_link(events)
         {:ok, camera} = Sensor.Camera.start_link(url, events)
-        add_event_handlers(events)
+        actuators = add_event_handlers(events)
         sensors = Enum.reduce(@sensor_keys, %Sensors{}, fn(x, acc) ->
             Map.put(acc, x, Sensor.Analog.start_link(events, x))
         end)
@@ -71,18 +76,19 @@ defmodule Nodeponics.Node do
             :ip => message.ip,
             :events => events,
             :sensors => sensors,
+            :actuators => actuators,
             :camera => camera,
         }}
     end
 
-    def update_state(node, message) do
-        GenServer.call(node, {:update_state, message})
+    def add_event_handlers(events) do
+        Enum.reduce(@actuator_keys, %Actuators{}, fn(x, acc) ->
+            Map.put(acc, x, GenEvent.add_mon_handler(events, Map.get(acc, x), self()))
+        end)
     end
 
-    def add_event_handlers(events) do
-        GenEvent.add_mon_handler(events, Actuator.Fan, self())
-        GenEvent.add_mon_handler(events, Actuator.Light, self())
-        GenEvent.add_mon_handler(events, Actuator.Pump, self())
+    def update_state(node, message) do
+        GenServer.call(node, {:update_state, message})
     end
 
     def handle_info(message = %Message{:type => @stats}, state) do
@@ -168,5 +174,15 @@ defmodule Nodeponics.Node do
         UDPServer.send_message(message)
         GenEvent.notify(state.events, %Event{:type => :node_message, :value => %Message{message | :ip => nil}})
         {:noreply, state}
+    end
+
+    def format_status(:normal, [pdict, state]) do
+        sensors = Enum.reduce(@sensor_keys, %Sensors{}, fn(x, acc) ->
+            Map.put(acc, x, Sensor.Analog.state(Map.get(state.sensors, x)))
+        end)
+        actuators = Enum.reduce(GenEvent.which_handlers(state.events), %{}, fn(x, acc) ->
+            x
+        end)
+        %{:sensors => sensors, :id => state.id}
     end
 end

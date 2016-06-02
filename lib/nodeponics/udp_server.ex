@@ -13,8 +13,6 @@ defmodule Nodeponics.UDPServer do
         defstruct [:ip, :udp]
     end
 
-    @init "init"
-
     @port Application.get_env(:nodeponics, :udp_port)
     @multicast Application.get_env(:nodeponics, :multicast_address)
     @interfaces ['wlan0', 'eth0']

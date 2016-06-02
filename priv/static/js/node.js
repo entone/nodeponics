@@ -1,11 +1,32 @@
+function WebSocketManager(ws){
+    this.ws = ws;
+    this.handlers = [];
+    var self = this;
+    this.ws.onmessage = function(evt){
+        var evnt = JSON.parse(evt.data)
+        for(var h in self.handlers){
+            self.handlers[h][1].call(self.handlers[h][0], evnt);
+        }
+    }
+}
+
+WebSocketManager.prototype.add_handler = function(obj, handler){
+    this.handlers.push([obj, handler])
+}
+
+WebSocketManager.prototype.send = function(message){
+    this.ws.send(JSON.stringify(message));
+}
+
 function Message(type, data, id){
     this.type = type;
     this.data = data;
     this.id = id;
 }
 
-function Node(id, parent, user_id, websocket){
-    this.id = id;
+function Node(obj, parent, user_id, websocket){
+    this.data = obj;
+    this.id = this.data.id;
     this.ws = websocket;
     this.user_id = user_id;
     this.events = [];
@@ -38,20 +59,20 @@ Node.prototype.dom = function(parent){
 }
 
 Node.prototype.websocket = function(){
-    var self = this;
     this.send("node", "");
-    this.ws.onmessage = function(evt) {
-        var evnt = JSON.parse(evt.data);
-        if(evnt.id != self.id) return;
-        self.events.push(evnt);
-        if(self.events.length > 10) self.events.shift();
-        self.display_event(evnt);
-    };
+    this.ws.add_handler(this, this.onmessage);
 }
+
+Node.prototype.onmessage = function(evnt) {
+    if(evnt.id != this.id) return;
+    this.events.push(evnt);
+    if(this.events.length > 10) this.events.shift();
+    this.display_event(evnt);
+};
 
 Node.prototype.send = function(type, data){
     var m = new Message(type, data, this.id);
-    this.ws.send(JSON.stringify(m));
+    this.ws.send(m);
 }
 
 Node.prototype.on = function(){

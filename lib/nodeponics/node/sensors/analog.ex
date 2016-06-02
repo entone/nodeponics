@@ -27,7 +27,9 @@ defmodule Nodeponics.Node.Sensor.Analog do
     end
 
     def state(agent) do
-        Agent.get(agent, fn(state) -> state end)
+        Agent.get(agent, fn(state) ->
+            %State{state | :events => nil}
+        end)
     end
 
     def update(agent, value) do

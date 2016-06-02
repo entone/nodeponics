@@ -12,6 +12,15 @@ use Mix.Config
 #
 config :nodeponics, udp_port: 5683, tcp_port: 8080, cipher_key: System.get_env("SKEY")
 config :nodeponics, multicast_address: {239, 255, 41, 11}
+config :nodeponics, tty: "/dev/ttyAMA0"
+config :movi, speed: 9600
+
+config :nerves_interim_wifi,
+  regulatory_domain: "US"
+
+config :nerves, :firmware,
+  fwup_conf: "config/rpi2/fwup.conf",
+  rootfs_additions: "config/rpi2/rootfs-additions"
 #
 # And access this configuration in your application as:
 #
