@@ -20,7 +20,7 @@ defmodule Nodeponics.Mixfile do
 
   def application do
     [
-        applications: [:logger, :cowboy, :httpoison, :sweet_xml, :xmerl, :nerves, :movi, :poison, :nerves_interim_wifi],
+        applications: [:logger, :cowboy, :httpoison, :timex, :sweet_xml, :xmerl, :nerves, :movi, :poison, :nerves_interim_wifi],
         mod: {Nodeponics, []}
     ]
   end

@@ -3,6 +3,23 @@ defmodule Nodeponics.UDPServer do
     require Logger
     alias Nodeponics.DatagramSupervisor
 
+    defmodule WifiHandler do
+        use GenEvent
+        def init(parent) do
+            {:ok, %{:parent => parent}}
+        end
+
+        def handle_event({:udhcpc, _, :bound, info}, state) do
+            Logger.info "Wifi bound: #{inspect info}"
+            send(state.parent, {:bound, info})
+            {:ok, state}
+        end
+
+        def handle_event(ev, state) do
+            {:ok, state}
+        end
+    end
+
     @cipher_key Application.get_env(:nodeponics, :cipher_key) <> <<0>>
 
     defmodule Message do
@@ -10,7 +27,7 @@ defmodule Nodeponics.UDPServer do
     end
 
     defmodule State do
-        defstruct [:ip, :udp]
+        defstruct [:ip, :udp, :port]
     end
 
     @port Application.get_env(:nodeponics, :udp_port)
@@ -49,26 +66,8 @@ defmodule Nodeponics.UDPServer do
     end
 
     def init(port) do
-        intfs =
-            :inet.getifaddrs()
-            |> elem(1)
-            |> Enum.find(fn(inf) ->
-                Enum.member?(@interfaces, elem(inf, 0))
-            end)
-            |> elem(1)
-        ip = intfs[:addr]
-        Logger.info "Cypher Key: #{@cipher_key}"
-        udp_options = [
-            :binary,
-            active:          10,
-            add_membership:  { @multicast, {0,0,0,0} },
-            multicast_if:    {0,0,0,0},
-            multicast_loop:  false,
-            multicast_ttl:   4,
-            reuseaddr:       true
-        ]
-        {:ok, udp} = :gen_udp.open(port, udp_options)
-        {:ok, %State{:udp => udp, :ip => ip}}
+        GenEvent.add_handler(Nerves.NetworkInterface.event_manager, WifiHandler, self)
+        {:ok, %State{:port => port}}
     end
 
     def handle_info({:udp, socket, ip, port, data}, state) do
@@ -81,10 +80,24 @@ defmodule Nodeponics.UDPServer do
         {:noreply, state}
     end
 
+    def handle_info({:bound, info}, state) do
+        Logger.info "Opening UDP"
+        :timer.sleep(1000)
+        udp_options = [
+            :binary,
+            active:          10,
+            add_membership:  { @multicast, {0,0,0,0} },
+            multicast_if:    {0,0,0,0},
+            multicast_loop:  false,
+            multicast_ttl:   4,
+            reuseaddr:       true
+        ]
+        {:ok, udp} = :gen_udp.open(state.port, udp_options)
+        {:noreply, %State{state | udp: udp, ip: info.ipv4_address}}
+    end
+
     def handle_call({:send, message}, _from, state) do
         data = "#{message.type}:#{message.data}:#{message.id}\n"
-        Logger.info "Sending: #{data} to:"
-        IO.inspect(message.ip)
         :ok = :gen_udp.send(state.udp, message.ip, @port, data)
         {:reply, :ok, state}
     end

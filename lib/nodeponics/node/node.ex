@@ -56,6 +56,10 @@ defmodule Nodeponics.Node do
         GenServer.cast(self, :ack)
     end
 
+    def light(node, command) do
+        send_message(node, "light", command)
+    end
+
     def init(message) do
         webcams = ['http://entropealabs.net/camera/front.jpg', 'http://www.glerl.noaa.gov/metdata/chi/chi1.jpg']
         url = Enum.random(webcams)
@@ -107,7 +111,6 @@ defmodule Nodeponics.Node do
     def handle_info(message = %Message{:type => @light}, state) do
         GenServer.cast(message.id, {:send, @light, message.data})
         {:noreply, state}
-        #Nodeponics.Node.send_message(message.id, "light", message.data)
     end
 
     def handle_info(message = %Message{:type => @update_camera}, state) do
