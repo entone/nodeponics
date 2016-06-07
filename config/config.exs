@@ -14,6 +14,7 @@ config :nodeponics, udp_port: 5683, tcp_port: 8080, cipher_key: System.get_env("
 config :nodeponics, multicast_address: {239, 255, 41, 11}
 config :nodeponics, tty: "/dev/ttyAMA0"
 config :movi, speed: 9600
+config :movi, callsign: "ROSETTA"
 
 config :nerves_interim_wifi,
   regulatory_domain: "US"
@@ -37,4 +38,4 @@ config :nerves, :firmware,
 # Configuration from the imported file will override the ones defined
 # here (which is why it is important to import them last).
 #
-#     import_config "#{Mix.env}.exs"
+import_config "words.exs"
