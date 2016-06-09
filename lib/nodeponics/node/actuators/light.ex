@@ -8,32 +8,37 @@ defmodule Nodeponics.Node.Actuator.Light do
     alias Nodeponics.Node.Event
     alias Nodeponics.UDPServer
 
-    @start_hour 11
-    @end_hour 1
+    @start_hour 9
+    @end_hour 24
     @lighton "lighton"
     @lightoff "lightoff"
 
     defmodule State do
-        defstruct status: :off, start_time: nil, end_time: nil, parent: nil
+        defstruct status: :off, desired: nil, start_time: nil, end_time: nil, parent: nil
     end
 
     def init(parent) do
         {:ok, %State{:parent => parent}}
     end
 
+    #turn on
     def handle_event(event = %Event{:type => :clock}, state) do
-        status = state.status
-        new_state = case event.value do
-            %DateTime{:hour => @start_hour} when status == :off or status == :waiting ->
+        hour = event.value.hour
+        new_state = case state.status do
+            :off when hour >= @start_hour and hour < @end_hour->
                 Logger.info "Turning light on"
                 Node.send_message(state.parent, "light", "on")
-                %State{state | :status => :waiting}
-            %DateTime{:hour => @end_hour} when status == :on or status == :waiting ->
+                %State{state | :status => :waiting, :desired => "on"}
+            :on when hour <= @start_hour and hour >= @end_hour->
                 Logger.info "Turning light off"
                 Node.send_message(state.parent, "light", "off")
-                %State{state | :status => :waiting}
-            _ ->
+                %State{state | :status => :waiting, :desired => "off"}
+            :waiting
+                Logger.info "Turning light #{state.desired}"
+                Node.send_message(state.parent, "light", state.desired)
                 state
+            set ->
+                %State{state | :desired => Atom.to_string(set)}
         end
         {:ok, new_state}
     end
