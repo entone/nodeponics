@@ -1,3 +1,5 @@
+var event_types = ['ec', 'do', 'humidity', 'temperature', 'ph', 'water_temperature'];
+
 function WebSocketManager(ws){
     this.ws = ws;
     this.handlers = [];
@@ -104,6 +106,7 @@ Node.prototype.websocket = function(){
 
 Node.prototype.onmessage = function(evnt) {
     if(evnt.id != this.id) return;
+    if(event_types.indexOf(evnt.type) == -1) return;
     this.last[evnt.type] = {x: new Date().getTime(), y: evnt.value};
 };
 
