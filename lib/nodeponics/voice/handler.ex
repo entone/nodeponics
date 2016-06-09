@@ -12,7 +12,7 @@ defmodule Nodeponics.Voice.Handler do
     @numbers Application.get_env(:movi, :numbers)
 
     def handle_event(event = %Event{:message => message}, state) when message != nil do
-        IO.inspect event
+        #IO.inspect event
         acc = %{:verbs => [], :combinators => [], :descriptors => [], :locations => [], :things => [], :numbers => []}
         Enum.reduce(message, acc, fn(word, acc) ->
             cond do
@@ -31,7 +31,7 @@ defmodule Nodeponics.Voice.Handler do
                 true ->
                     acc
             end
-        end) |> IO.inspect
+        end)
         {:ok, state}
     end
 

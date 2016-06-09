@@ -4,7 +4,7 @@ defmodule Nodeponics.Node.Sensor.Camera do
     alias Nodeponics.Node.Event
 
     defmodule State do
-        defstruct [:url, :events, image: "0", refresh: 200]
+        defstruct [:url, :events, image: "0", refresh: 0]
     end
 
     def start_link(url, events) do
@@ -16,7 +16,7 @@ defmodule Nodeponics.Node.Sensor.Camera do
     end
 
     def get_image(url, state) do
-        case async = HTTPoison.get(url) do
+        case HTTPoison.get(url) do
             {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->
                 body
             {:error, _other} ->

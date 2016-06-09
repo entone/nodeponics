@@ -83,6 +83,7 @@ defmodule Nodeponics.UDPServer do
     def handle_info({:bound, info}, state) do
         Logger.info "Opening UDP"
         :timer.sleep(1000)
+        set_time
         udp_options = [
             :binary,
             active:          10,
@@ -100,6 +101,24 @@ defmodule Nodeponics.UDPServer do
         data = "#{message.type}:#{message.data}:#{message.id}\n"
         :ok = :gen_udp.send(state.udp, message.ip, @port, data)
         {:reply, :ok, state}
+    end
+
+    defp set_time do
+        Logger.info "Setting Time"
+        case HTTPoison.get "http://www.timeapi.org/utc/now" do
+            {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->
+                info = Regex.named_captures(~r"(?<date>.+)T(?<time>.+)\+(?<offset>.+)$", String.strip(body))
+                case info["time"] do
+                    nil -> Logger.info("Error parsing date: #{body}")
+                    _ ->
+                        Logger.info("Setting date #{inspect info}")
+                        time = info["time"]
+                        date = info["date"]
+                        System.cmd("date", ["-s", "#{date} #{time}"])
+                end
+            _ ->
+                Logger.info("Error getting date from web service")
+        end
     end
 
 end

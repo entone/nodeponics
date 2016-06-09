@@ -8,8 +8,8 @@ defmodule Nodeponics.Node.Actuator.Light do
     alias Nodeponics.Node.Event
     alias Nodeponics.UDPServer
 
-    @start_hour 9
-    @end_hour 24
+    @start_hour 11
+    @end_hour 23
     @lighton "lighton"
     @lightoff "lightoff"
 
@@ -21,15 +21,14 @@ defmodule Nodeponics.Node.Actuator.Light do
         {:ok, %State{:parent => parent}}
     end
 
-    #turn on
     def handle_event(event = %Event{:type => :clock}, state) do
         hour = event.value.hour
         new_state = case state.status do
-            :off when hour >= @start_hour and hour < @end_hour->
+            :off when hour >= @start_hour and hour < @end_hour ->
                 Logger.info "Turning light on"
                 Node.send_message(state.parent, "light", "on")
                 %State{state | :status => :waiting, :desired => "on"}
-            :on when hour <= @start_hour and hour >= @end_hour->
+            :on when hour >= @end_hour or hour < @start_hour ->
                 Logger.info "Turning light off"
                 Node.send_message(state.parent, "light", "off")
                 %State{state | :status => :waiting, :desired => "off"}

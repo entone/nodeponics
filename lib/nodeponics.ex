@@ -10,8 +10,6 @@ defmodule Nodeponics do
     @key_management :"WPA-PSK"
 
     def start(_type, _args) do
-        #Mnesia.create_schema([node])
-        #Mnesia.start()
         {:ok, pid} = Nodeponics.Supervisor.start_link
         Movi.add_handler(Nodeponics.Voice.Handler)
         Nerves.InterimWiFi.setup(@interface, ssid: @ssid, key_mgmt: @key_management, psk: @psk)
@@ -38,4 +36,5 @@ defmodule Nodeponics do
             :timer.sleep(100)
         end)
     end
+
 end
