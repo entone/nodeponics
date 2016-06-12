@@ -13,7 +13,7 @@ defmodule Nodeponics.Node.Clock do
     end
 
     def handle_info(:clock, events) do
-        GenEvent.notify(events, %Event{:type => :clock, :value => DateTime.now})
+        GenEvent.notify(events, %Event{:type => :clock, :value => DateTime.universal})
         start_clock
         {:noreply, events}
     end

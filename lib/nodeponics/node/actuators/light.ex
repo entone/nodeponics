@@ -32,18 +32,14 @@ defmodule Nodeponics.Node.Actuator.Light do
                 Logger.info "Turning light off"
                 Node.send_message(state.parent, "light", "off")
                 %State{state | :status => :waiting, :desired => "off"}
-            :waiting
+            :waiting ->
                 Logger.info "Turning light #{state.desired}"
                 Node.send_message(state.parent, "light", state.desired)
                 state
             set ->
-                %State{state | :desired => Atom.to_string(set)}
+                state
         end
         {:ok, new_state}
-    end
-
-    def handle_event(event = %Event{:type => :humidity}, state) do
-        {:ok, state}
     end
 
     def handle_event(_event = %Event{:type => @lighton}, state) do

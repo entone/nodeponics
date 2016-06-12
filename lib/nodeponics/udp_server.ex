@@ -66,8 +66,27 @@ defmodule Nodeponics.UDPServer do
     end
 
     def init(port) do
-        GenEvent.add_handler(Nerves.NetworkInterface.event_manager, WifiHandler, self)
-        {:ok, %State{:port => port}}
+        Logger.info "Opening UDP"
+        Logger.info @cipher_key
+        intfs =
+            :inet.getifaddrs()
+            |> elem(1)
+            |> Enum.find(fn(inf) ->
+                Enum.member?(@interfaces, elem(inf, 0))
+            end)
+            |> elem(1)
+        ip = intfs[:addr]
+        udp_options = [
+            :binary,
+            active:          10,
+            add_membership:  { @multicast, {0,0,0,0} },
+            multicast_if:    {0,0,0,0},
+            multicast_loop:  false,
+            multicast_ttl:   4,
+            reuseaddr:       true
+        ]
+        {:ok, udp} = :gen_udp.open(port, udp_options)
+        {:ok, %State{:port => port, :ip => ip, :udp => udp}}
     end
 
     def handle_info({:udp, socket, ip, port, data}, state) do
