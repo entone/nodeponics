@@ -3,8 +3,8 @@ defmodule Nodeponics.API.Websocket do
     require Logger
 
     alias Nodeponics.Node
-    alias Nodeponics.Node.Event
-    alias Nodeponics.UDPServer.Message
+    alias Nodeponics.Event
+    alias Nodeponics.Message
 
     @node "node"
 

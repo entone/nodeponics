@@ -1,7 +1,7 @@
 defmodule Nodeponics.Node.Clock do
     use GenServer
     use Timex
-    alias Nodeponics.Node.Event
+    alias Nodeponics.Event
 
     def start_link(events) do
         GenServer.start_link(__MODULE__, events)

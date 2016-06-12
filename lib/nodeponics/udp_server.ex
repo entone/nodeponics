@@ -2,6 +2,7 @@ defmodule Nodeponics.UDPServer do
     use GenServer
     require Logger
     alias Nodeponics.DatagramSupervisor
+    alias Nodeponics.Message
 
     defmodule WifiHandler do
         use GenEvent
@@ -21,10 +22,6 @@ defmodule Nodeponics.UDPServer do
     end
 
     @cipher_key Application.get_env(:nodeponics, :cipher_key) <> <<0>>
-
-    defmodule Message do
-        defstruct [:id, :type, :data, :ip, :port]
-    end
 
     defmodule State do
         defstruct [:ip, :udp, :port]

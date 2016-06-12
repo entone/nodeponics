@@ -2,7 +2,7 @@ defmodule Nodeponics.API.MJPEGHandler do
     require Logger
 
     alias Nodeponics.Node
-    alias Nodeponics.Node.Event
+    alias Nodeponics.Event
     @boundary "boundarydonotcross"
 
     def delimiter do
