@@ -11,7 +11,7 @@ defmodule Nodeponics.Supervisor do
         children = [
             worker(Nodeponics.UDPServer, []),
             worker(Nodeponics.TCPServer, []),
-            worker(Nodeponics.UPNPServer, []),
+            #worker(Nodeponics.UPNPServer, []),
             supervisor(Task.Supervisor, [[name: Nodeponics.DatagramSupervisor]]),
             supervisor(Nodeponics.NodeSupervisor, []),
         ]
