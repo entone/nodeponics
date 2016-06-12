@@ -4,23 +4,21 @@ defmodule Nodeponics.Node.Sensor.Camera do
     alias Nodeponics.Node.Event
 
     defmodule State do
-        defstruct [:url, :events, image: "0", refresh: 1000]
+        defstruct [:url, :events, image: "0", refresh: 0]
     end
 
     def start_link(url, events) do
         GenServer.start_link(__MODULE__, [url, events])
     end
 
+    def add_event_handler(camera, handler, parent) do
+        GenServer.call(camera, {:add_handler, handler, parent})
+    end
+
     def get_image(url, state) do
-        case :httpc.request(:get, {url, []}, [], [body_format: :binary]) do
-            {:ok, resp} ->
-                case resp do
-                    {{_, 200, 'OK'}, _headers, body} ->
-                        body
-                    {{_, _, _}, _headers, body} ->
-                        Logger.info "Error getting image. #{body}"
-                        state.image
-                end
+        case HTTPoison.get(url) do
+            {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->
+                body
             {:error, _other} ->
                 Logger.info "Error getting image."
                 state.image

@@ -2,6 +2,7 @@ defmodule Nodeponics.Supervisor do
     use Supervisor
 
     @name __MODULE__
+    @tty Application.get_env(:nodeponics, :tty)
 
     def start_link do
         Supervisor.start_link(__MODULE__, :ok, name: @name)

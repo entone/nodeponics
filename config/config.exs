@@ -10,7 +10,7 @@ use Mix.Config
 
 # You can configure for your application as:
 #
-config :nodeponics, udp_port: 5683, tcp_port: 8080, cipher_key: System.get_env("SKEY")
+config :nodeponics, udp_port: 5683, tcp_port: 8081, cipher_key: System.get_env("SKEY")
 config :nodeponics, multicast_address: {239, 255, 41, 11}
 #
 # And access this configuration in your application as:

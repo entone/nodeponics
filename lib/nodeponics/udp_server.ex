@@ -67,7 +67,7 @@ defmodule Nodeponics.UDPServer do
 
     def init(port) do
         Logger.info "Opening UDP"
-        :timer.sleep(1000)
+        Logger.info @cipher_key
         intfs =
             :inet.getifaddrs()
             |> elem(1)
@@ -86,7 +86,7 @@ defmodule Nodeponics.UDPServer do
             reuseaddr:       true
         ]
         {:ok, udp} = :gen_udp.open(port, udp_options)
-        {:ok, %State{:port => port, :udp => udp, :ip => ip}}
+        {:ok, %State{:port => port, :ip => ip, :udp => udp}}
     end
 
     def handle_info({:udp, socket, ip, port, data}, state) do
@@ -98,7 +98,6 @@ defmodule Nodeponics.UDPServer do
         end
         {:noreply, state}
     end
-
 
     def handle_call({:send, message}, _from, state) do
         data = "#{message.type}:#{message.data}:#{message.id}\n"

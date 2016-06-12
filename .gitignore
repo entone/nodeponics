@@ -3,4 +3,6 @@
 /deps
 erl_crash.dump
 *.ez
-Mnesia.*
+/rel
+/_images
+Mnesia*

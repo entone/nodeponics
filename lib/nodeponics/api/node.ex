@@ -16,7 +16,8 @@ defmodule Nodeponics.API.Node do
         {user_id, req} = :cowboy_req.qs_val("user_id", req)
         Logger.info "Getting Nodes for #{state.user}"
         nodes = Enum.map(Supervisor.which_children(NodeSupervisor), fn({_id, pid, _type, module} = node) ->
-             Node.id(pid) |> Atom.to_string
+            {:status, _pid, _mod, [_other, status, pid, _, [_header, _data, values]]} = :sys.get_status(pid)
+            values
         end)
         IO.inspect nodes
         headers = [
