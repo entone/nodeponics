@@ -61,7 +61,7 @@ defmodule Nodeponics.Node do
     end
 
     def init(message) do
-        webcams = ['http://entropealabs.net/camera/front.jpg', 'http://www.glerl.noaa.gov/metdata/chi/chi1.jpg']
+        webcams = ['http://192.168.1.97/image/jpeg.cgi',]
         url = Enum.random(webcams)
         Logger.info("Starting node: #{message.id}")
         #Mnesia.create_table(:node, [attributes: [:id, :camera]])
