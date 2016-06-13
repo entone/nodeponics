@@ -36,8 +36,8 @@ defmodule Nodeponics.Node.Actuator.Light do
                 Logger.info "Turning light #{state.desired}"
                 Node.send_message(state.parent, "light", state.desired)
                 state
-            set ->
-                %State{state | :desired => Atom.to_string(set)}
+            _ ->
+                state
         end
         {:ok, new_state}
     end
