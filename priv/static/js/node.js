@@ -1,4 +1,4 @@
-var event_types = ['ec', 'do', 'humidity', 'temperature', 'ph', 'water_temperature'];
+var event_types = ['do', 'humidity', 'temperature', 'ph', 'water_temperature'];
 
 function WebSocketManager(ws){
     this.ws = ws;
@@ -127,7 +127,7 @@ Node.prototype.update_graph = function(ts){
             var cp = jQuery.extend({}, this.last[k]);
             cp.x = new Date().getTime();
             evs.values.push(cp);
-            if(evs.values.length > 1000) evs.values.shift();
+            if(evs.values.length > 200) evs.values.shift();
         }
         d3.select('#messages'+this.id+' svg')
             .datum(this.events)

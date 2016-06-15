@@ -14,7 +14,7 @@ defmodule Nodeponics.Node.Actuator.Light do
     @lightoff "lightoff"
 
     defmodule State do
-        defstruct status: :off, desired: nil, start_time: nil, end_time: nil, parent: nil
+        defstruct status: :off, desired: "off", start_time: nil, end_time: nil, parent: nil
     end
 
     def init(parent) do
@@ -32,11 +32,11 @@ defmodule Nodeponics.Node.Actuator.Light do
                 Logger.info "Turning light off"
                 Node.send_message(state.parent, "light", "off")
                 %State{state | :status => :waiting, :desired => "off"}
-            :waiting
-                Logger.info "Turning light #{state.desired}"
+            :waiting ->
+                Logger.info "Waiting: Turning light #{state.desired}"
                 Node.send_message(state.parent, "light", state.desired)
                 state
-            _ ->
+            set ->
                 state
         end
         {:ok, new_state}

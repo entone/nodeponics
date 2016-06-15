@@ -13,7 +13,7 @@ defmodule Nodeponics.Node do
     @light "light"
     @update_camera "update_camera"
 
-    @sensor_keys [:do, :ec, :humidity, :ph, :temperature]
+    @sensor_keys [:do, :humidity, :ph, :temperature, :water_temperature]
     @actuator_keys [:fan, :light, :pump]
 
     defmodule Event do
@@ -21,7 +21,7 @@ defmodule Nodeponics.Node do
     end
 
     defmodule Sensors do
-        defstruct [:do, :ec, :humidity, :ph, :temperature]
+        defstruct [:do, :humidity, :ph, :temperature, :water_temperature]
     end
 
     defmodule Actuators do
