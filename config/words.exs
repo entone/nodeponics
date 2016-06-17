@@ -69,6 +69,11 @@ config :movi, things: [
     "FAN",
     "RADIO",
     "STEREO",
+    "PEE ACHE",
+    "DISSOLVED OXYGEN",
+    "WATER TEMPERATURE",
+    "TEMPERATURE",
+    "HUMIDITY",
 ]
 
 config :movi, numbers: [

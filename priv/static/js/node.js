@@ -33,11 +33,13 @@ function Node(obj, parent, user_id, websocket){
     this.start = null;
     this.user_id = user_id;
     this.last = {};
-    this.events = [];
+    this.events = {};
+    this.charts = {};
     this.dom(parent);
     this.graph();
     this.websocket();
     this.stream();
+    this.rendered_charts = 0;
 }
 
 Node.prototype.dom = function(parent){
@@ -45,7 +47,7 @@ Node.prototype.dom = function(parent){
             <div class=\"thumbnail\"> \
                 <img id=\"stream"+this.id+"\"> \
                 <div class=\"caption\"> \
-                    <div class=\"messages\" id=\"messages"+this.id+"\"><svg></svg></div> \
+                    <div class=\"messages\" id=\"messages"+this.id+"\"></div> \
                     <div class=\"btn-group\" role=\"group\" > \
                         <button type=\"button\" class=\"btn btn-default\" id=\"on"+this.id+"\">ON</button> \
                         <button type=\"button\" class=\"btn btn-default\" id=\"off"+this.id+"\">OFF</button> \
@@ -65,37 +67,57 @@ Node.prototype.dom = function(parent){
 
 Node.prototype.graph = function(){
     var self = this;
-    nv.addGraph(function() {
-        self.chart = nv.models.lineChart()
-            .margin({left: 30, right: 30})
-            .useInteractiveGuideline(true)
-            .showLegend(false)
-            .showYAxis(true)
-            .showXAxis(true)
-            .noData("Waiting for stream...");
+    var counter = 0;
+    for(var i in event_types){
+        var s = event_types[i];
+        $("#messages"+this.id).append("<svg id='"+s+"'></svg>");
+        this.events[s] = [];
+        nv.addGraph(function() {
+            var chart = nv.models.lineChart()
+                .margin({left: 30, right: 30})
+                .useInteractiveGuideline(true)
+                .showLegend(true)
+                .showYAxis(true)
+                .showXAxis(false)
+                .noData("Waiting for stream...");
 
-        self.chart.xAxis     //Chart x-axis settings
-            .tickFormat(function(d) {
-                return d3.time.format('%X')(new Date(d));
-            });
+            chart.xAxis     //Chart x-axis settings
+                .tickFormat(function(d) {
+                    return d3.time.format('%X')(new Date(d));
+                });
 
-        d3.select('#messages'+self.id+' svg')
-            .datum(self.events)
-            .call(self.chart);
-
-        nv.utils.windowResize(function() { self.chart.update() });
+            return chart;
+        }, function(chart){
+            self.update_charts(chart)
+        });
+    }
+    nv.utils.windowResize(function() {
+        for(var c in this.charts){
+            this.charts[c].update();
+        }
     });
-    var self = this;
-    window.requestAnimationFrame(function(ts){self.update_graph(ts)});
+    window.requestAnimationFrame(function(ts){
+        self.update_graphs(ts);
+    });
     $(window).focus(function() {
         self.reset_data();
     });
 }
 
+Node.prototype.update_charts = function(chart){
+    type = event_types[this.rendered_charts];
+    console.log("Adding Chart: "+type);
+    this.charts[type] = chart;
+
+    console.log(chart);
+    console.log(this.charts);
+    this.rendered_charts++;
+}
+
 Node.prototype.reset_data = function(){
     console.log("reset data");
     for(var k in this.events){
-        this.events[k].values = [];
+        this.events[k][0].values = [];
     }
 }
 
@@ -110,31 +132,28 @@ Node.prototype.onmessage = function(evnt) {
     this.last[evnt.type] = {x: new Date().getTime(), y: evnt.value};
 };
 
-Node.prototype.update_graph = function(ts){
-    if (!this.start) this.start = ts;
-    var progress = ts - this.start;
-    if(progress > 200){
-        this.start = ts;
-        for(var k in this.last){
-            var evs = false;
-            for(var e in this.events){
-                if(this.events[e].key == k) evs = this.events[e];
-            }
-            if(!evs){
-                evs = {key: k, values: []}
-                this.events.push(evs)
-            }
-            var cp = jQuery.extend({}, this.last[k]);
-            cp.x = new Date().getTime();
-            evs.values.push(cp);
-            if(evs.values.length > 200) evs.values.shift();
-        }
-        d3.select('#messages'+this.id+' svg')
-            .datum(this.events)
-            .call(this.chart);
-    }
+Node.prototype.update_graphs = function(ts){
+    var colors = d3.scale.category10();
     var self = this;
-    window.requestAnimationFrame(function(ts){self.update_graph(ts)});
+    if (!this.start) this.start = ts;
+    window.requestAnimationFrame(function(ts){self.update_graphs(ts)});
+    if(ts - this.start < 200) return;
+    this.start = ts;
+    for(var k in this.last){
+        var evs = false;
+        if(this.events[k].length) evs = this.events[k][0];
+        if(!evs){
+            evs = {key: k, values: [], color: colors.range()[parseInt(Math.random()*10)]}
+            this.events[k].push(evs)
+        }
+        var cp = jQuery.extend({}, this.last[k]);
+        cp.x = new Date().getTime();
+        evs.values.push(cp);
+        if(evs.values.length > 200) evs.values.shift();
+        d3.select('#messages'+this.id+' #'+k)
+            .datum(this.events[k])
+            .call(this.charts[k]);
+    }
 }
 
 Node.prototype.send = function(type, data){
