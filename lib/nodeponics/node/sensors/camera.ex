@@ -1,7 +1,7 @@
 defmodule Nodeponics.Node.Sensor.Camera do
     use GenServer
     require Logger
-    alias Nodeponics.Node.Event
+    alias Nodeponics.Event
 
     defmodule State do
         defstruct [:url, :events, image: "0", refresh: 0]

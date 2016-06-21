@@ -9,6 +9,14 @@ defmodule Nodeponics do
     @psk "CRTUnderscoreSpelledOut"#System.get_env("PSK")
     @key_management :"WPA-PSK"
 
+    defmodule Event do
+        defstruct [:type, :value, :id]
+    end
+
+    defmodule Message do
+        defstruct [:id, :type, :data, :ip, :port]
+    end
+
     def start(_type, _args) do
         {:ok, pid} = Nodeponics.Supervisor.start_link
         Movi.add_handler(Nodeponics.Voice.Handler)

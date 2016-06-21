@@ -1,8 +1,8 @@
 defmodule Nodeponics.Node.Actuator.Pump do
-    use GenEvent
-    alias Nodeponics.Node.Event
-
-    def handle_event(_event = %Event{}, state) do
-        {:ok, state}
-    end
+    use Nodeponics.Node.Trigger.Frequency,
+        frequency: 900,
+        runtime: 180,
+        on_callback: "pumpon",
+        off_callback: "pumpoff",
+        thing: "pump"
 end

@@ -6,7 +6,8 @@ defmodule Nodeponics.Node do
     alias Nodeponics.Node.Sensor
     alias Nodeponics.Node.Actuator
     alias Nodeponics.Node.Clock
-    alias Nodeponics.UDPServer.Message
+    alias Nodeponics.Message
+    alias Nodeponics.Event
     alias :mnesia, as: Mnesia
 
     @stats "stats"
@@ -15,10 +16,6 @@ defmodule Nodeponics.Node do
 
     @sensor_keys [:do, :humidity, :ph, :temperature, :water_temperature]
     @actuator_keys [:fan, :light, :pump]
-
-    defmodule Event do
-        defstruct [:type, :value, :id]
-    end
 
     defmodule Sensors do
         defstruct [:do, :humidity, :ph, :temperature, :water_temperature]

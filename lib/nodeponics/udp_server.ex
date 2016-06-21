@@ -2,6 +2,7 @@ defmodule Nodeponics.UDPServer do
     use GenServer
     require Logger
     alias Nodeponics.DatagramSupervisor
+    alias Nodeponics.Message
 
     defmodule WifiHandler do
         use GenEvent
@@ -21,10 +22,6 @@ defmodule Nodeponics.UDPServer do
     end
 
     @cipher_key Application.get_env(:nodeponics, :cipher_key) <> <<0>>
-
-    defmodule Message do
-        defstruct [:id, :type, :data, :ip, :port]
-    end
 
     defmodule State do
         defstruct [:ip, :udp, :port]
@@ -105,7 +102,7 @@ defmodule Nodeponics.UDPServer do
 
     defp set_time do
         Logger.info "Setting Time"
-        case HTTPoison.get "http://www.timeapi.org/utc/now" do
+        case HTTPoison.get "http://www.timeapi.org/utc/now", [], [timeout: 15000] do
             {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->
                 info = Regex.named_captures(~r"(?<date>.+)T(?<time>.+)\+(?<offset>.+)$", String.strip(body))
                 case info["time"] do
