@@ -74,7 +74,7 @@ Node.prototype.graph = function(){
         this.events[s] = [];
         nv.addGraph(function() {
             var chart = nv.models.lineChart()
-                .margin({left: 30, right: 30})
+                .margin({left: 50, right: 20})
                 .useInteractiveGuideline(true)
                 .showLegend(true)
                 .showYAxis(true)
@@ -139,13 +139,15 @@ Node.prototype.update_graphs = function(ts){
     window.requestAnimationFrame(function(ts){self.update_graphs(ts)});
     if(ts - this.start < 200) return;
     this.start = ts;
+    var kolor = 0;
     for(var k in this.last){
         var evs = false;
         if(this.events[k].length) evs = this.events[k][0];
         if(!evs){
-            evs = {key: k, values: [], color: colors.range()[parseInt(Math.random()*10)]}
-            this.events[k].push(evs)
+            evs = {key: k, values: [], color: colors.range()[kolor]};
+            this.events[k].push(evs);
         }
+        kolor++;
         var cp = jQuery.extend({}, this.last[k]);
         cp.x = new Date().getTime();
         evs.values.push(cp);
