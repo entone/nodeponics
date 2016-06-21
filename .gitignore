@@ -6,3 +6,4 @@ erl_crash.dump
 /rel
 /_images
 Mnesia*
+.env

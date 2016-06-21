@@ -14,7 +14,7 @@ defmodule Nodeponics.Mixfile do
 
     def application do
     [
-        applications: [:logger, :cowboy, :httpoison, :sweet_xml, :xmerl, :timex],
+        applications: [:logger, :cowboy, :httpoison, :sweet_xml, :xmerl, :timex, :poison, :ex_aws],
         mod: {Nodeponics, []}
     ]
     end
@@ -26,6 +26,7 @@ defmodule Nodeponics.Mixfile do
         {:cowboy, "~> 1.0"},
         {:sweet_xml, "~> 0.6.1"},
         {:httpoison, "~> 0.8.3"}
+        {:ex_aws, "~> 1.0.0-beta0"},
     ]
     end
 end
