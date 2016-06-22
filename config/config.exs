@@ -23,7 +23,10 @@ config :nerves, :firmware,
   fwup_conf: "config/rpi2/fwup.conf",
   rootfs_additions: "config/rpi2/rootfs-additions"
 
-config :ex_aws, region: "us-west-2"
+config :ex_aws,
+    region: "us-west-2",
+    access_key_id: System.get_env("AWS_ACCESS_KEY_ID"),
+    secret_access_key: System.get_env("AWS_SECRET_ACCESS_KEY")
 #
 # And access this configuration in your application as:
 #

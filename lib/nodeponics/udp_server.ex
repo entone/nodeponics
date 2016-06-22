@@ -1,5 +1,6 @@
 defmodule Nodeponics.UDPServer do
     use GenServer
+    use Timex
     require Logger
     alias Nodeponics.DatagramSupervisor
     alias Nodeponics.Message
@@ -104,14 +105,19 @@ defmodule Nodeponics.UDPServer do
         Logger.info "Setting Time"
         case HTTPoison.get "http://www.timeapi.org/utc/now", [], [timeout: 15000] do
             {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->
-                info = Regex.named_captures(~r"(?<date>.+)T(?<time>.+)\+(?<offset>.+)$", String.strip(body))
-                case info["time"] do
+                info = Regex.named_captures(~r"(?<date>.+)T(?<hours>.+)\:(?<minutes>.+)\:(?<seconds>.+)\+(?<offset>.+)$", String.strip(body))
+                case info["hours"] do
                     nil -> Logger.info("Error parsing date: #{body}")
                     _ ->
                         Logger.info("Setting date #{inspect info}")
-                        time = info["time"]
+                        hours = String.to_integer(info["hours"])-1
+                        if hours < 0, do: hours = 23
+                        minutes = info["minutes"]
+                        seconds = info["seconds"]
+                        time = "#{hours}:#{minutes}:#{seconds}"
                         date = info["date"]
-                        System.cmd("date", ["-s", "#{date} #{time}"])
+                        offset = info["offset"]
+                        System.cmd("date", ["-s", "#{date} #{time}+#{offset}"])
                 end
             _ ->
                 Logger.info("Error getting date from web service")

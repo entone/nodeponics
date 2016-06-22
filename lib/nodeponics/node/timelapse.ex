@@ -1,23 +1,29 @@
 defmodule Nodeponics.Node.Timelapse do
     use GenEvent
     use Timex
+    require Logger
     alias ExAws.{S3, Operation}
     alias Nodeponics.Event
 
     defmodule State do
-        defstruct [:last, :id, refresh: 600]
+        defstruct [:id, last: nil, refresh: 600]
     end
 
     def init(id) do
         create_bucket(id)
-        {:ok, %State{:last => DateTime.universal, :id => id}}
+        {:ok, %State{:id => id}}
     end
 
     def handle_event(%Event{:type => :image, :value => image}, state) do
         now = DateTime.universal
-        diff = DateTime.diff(now, state.last, :seconds)
+        diff = case state.last do
+            %DateTime{} ->
+                DateTime.diff(now, state.last, :seconds)
+            nil ->
+                100000
+        end
         cond do
-            diff > state.refresh ->
+            diff >= state.refresh ->
                 :ok = save_image(image, state.id, now)
                 {:ok, %State{state | :last => DateTime.universal}}
             true ->
