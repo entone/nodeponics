@@ -67,6 +67,7 @@ defmodule Nodeponics.Node do
         {:ok, _clock} = Clock.start_link(events)
         {:ok, camera} = Sensor.Camera.start_link(url, events)
         actuators = add_event_handlers(events)
+        GenEvent.add_mon_handler(events, Nodeponics.Node.Timelapse, Atom.to_string(message.id))
         sensors = Enum.reduce(@sensor_keys, %Sensors{}, fn(x, acc) ->
             Map.put(acc, x, Sensor.Analog.start_link(events, x))
         end)
