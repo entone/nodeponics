@@ -58,7 +58,7 @@ defmodule Nodeponics.Node do
     end
 
     def init(message) do
-        webcams = ['http://192.168.1.97/image/jpeg.cgi',]
+        webcams = ['http://www.glerl.noaa.gov/metdata/cams/chi1.jpg',]#['http://192.168.1.97/image/jpeg.cgi',]
         url = Enum.random(webcams)
         Logger.info("Starting node: #{message.id}")
         #Mnesia.create_table(:node, [attributes: [:id, :camera]])
@@ -67,6 +67,7 @@ defmodule Nodeponics.Node do
         {:ok, _clock} = Clock.start_link(events)
         {:ok, camera} = Sensor.Camera.start_link(url, events)
         actuators = add_event_handlers(events)
+        GenEvent.add_mon_handler(events, Nodeponics.Node.Timelapse, Atom.to_string(message.id))
         sensors = Enum.reduce(@sensor_keys, %Sensors{}, fn(x, acc) ->
             Map.put(acc, x, Sensor.Analog.start_link(events, x))
         end)

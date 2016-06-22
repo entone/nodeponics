@@ -12,6 +12,8 @@ use Mix.Config
 #
 config :nodeponics, udp_port: 5683, tcp_port: 8081, cipher_key: System.get_env("SKEY")
 config :nodeponics, multicast_address: {239, 255, 41, 11}
+
+config :ex_aws, region: "us-west-2"
 #
 # And access this configuration in your application as:
 #

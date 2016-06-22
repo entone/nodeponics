@@ -25,8 +25,8 @@ defmodule Nodeponics.Mixfile do
         {:poison, "~> 2.1"},
         {:cowboy, "~> 1.0"},
         {:sweet_xml, "~> 0.6.1"},
-        {:httpoison, "~> 0.8.3"}
-        {:ex_aws, "~> 1.0.0-beta0"},
+        {:httpoison, "~> 0.8.3"},
+        {:ex_aws, "~> 0.5"},
     ]
     end
 end
