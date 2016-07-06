@@ -19,6 +19,9 @@ defmodule Nodeponics.Node.Sensor.Camera do
         case HTTPoison.get(url) do
             {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->
                 body
+            {:ok, %HTTPoison.Response{body: body}} ->
+                Logger.info "Error getting image. #{body}"
+                state.image
             {:error, _other} ->
                 Logger.info "Error getting image."
                 state.image

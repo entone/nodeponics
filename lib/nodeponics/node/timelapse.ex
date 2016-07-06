@@ -6,7 +6,7 @@ defmodule Nodeponics.Node.Timelapse do
     alias Nodeponics.Event
 
     defmodule State do
-        defstruct [:id, last: nil, refresh: 600]
+        defstruct [:id, last: nil, refresh: 3600]
     end
 
     def init(id) do
