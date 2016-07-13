@@ -48,7 +48,10 @@ defmodule Nodeponics.Node.Timelapse do
 
     def save_image(image, id, datetime) do
         {:ok, date_str} = Timex.format(datetime, "{YYYY}{M}{D}{h24}{m}{s}")
-        case S3.put_object(id, "#{date_str}.jpeg", image, [{:content_type, "image/jpeg"}, {:acl, :public_read}]) do
+        Logger.info("Saving Image")
+        IO.inspect image
+        IO.inspect byte_size(image)
+        case S3.put_object(id, "#{date_str}.jpeg", image, [{:content_type, "image/jpeg"}, {:content_length, byte_size(image)}, {:acl, :public_read}]) do
             {:ok, content} ->
                 IO.inspect content
                 :ok
