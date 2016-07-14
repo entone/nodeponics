@@ -8,13 +8,15 @@ defmodule Nodeponics.Node do
     alias Nodeponics.Node.Clock
     alias Nodeponics.Message
     alias Nodeponics.Event
+    alias Nodeponics.Node.Timelapse
+    alias Nodeponics.Node.SensorLogger
     alias :mnesia, as: Mnesia
 
     @stats "stats"
     @light "light"
     @update_camera "update_camera"
 
-    @sensor_keys [:do, :humidity, :ph, :temperature, :water_temperature]
+    @sensor_keys Application.get_env(:nodeponics, :sensor_keys)
     @actuator_keys [:fan, :light, :pump]
 
     defmodule Sensors do
@@ -61,17 +63,14 @@ defmodule Nodeponics.Node do
         webcams = ['http://192.168.1.97/image/jpeg.cgi',]
         url = Enum.random(webcams)
         Logger.info("Starting node: #{message.id}")
-        #Mnesia.create_table(:node, [attributes: [:id, :camera]])
-        #Mnesia.dirty_write({:node, message.id, url})
         {:ok, events} = GenEvent.start_link([])
         {:ok, _clock} = Clock.start_link(events)
         {:ok, camera} = Sensor.Camera.start_link(url, events)
-        actuators = add_event_handlers(events)
-        GenEvent.add_mon_handler(events, Nodeponics.Node.Timelapse, Atom.to_string(message.id))
-        sensors = Enum.reduce(@sensor_keys, %Sensors{}, fn(x, acc) ->
-            Map.put(acc, x, Sensor.Analog.start_link(events, x))
-        end)
-        ack
+        actuators = add_actuator_handlers(events)
+        sensors = add_sensor_handlers(events)
+        GenEvent.add_mon_handler(events, Timelapse, Atom.to_string(message.id))
+        GenEvent.add_mon_handler(events, SensorLogger, Atom.to_string(message.id))
+        ack()
         {:ok, %State{
             :id => message.id,
             :last_stats => :erlang.system_time(:milli_seconds),
@@ -83,7 +82,13 @@ defmodule Nodeponics.Node do
         }}
     end
 
-    def add_event_handlers(events) do
+    def add_sensor_handlers(events) do
+        Enum.reduce(@sensor_keys, %Sensors{}, fn(x, acc) ->
+            Map.put(acc, x, Sensor.Analog.start_link(events, x))
+        end)
+    end
+
+    def add_actuator_handlers(events) do
         Enum.reduce(@actuator_keys, %Actuators{}, fn(x, acc) ->
             Map.put(acc, x, GenEvent.add_mon_handler(events, Map.get(acc, x), self()))
         end)
@@ -111,22 +116,13 @@ defmodule Nodeponics.Node do
         {:noreply, state}
     end
 
-    def handle_info(message = %Message{:type => @update_camera}, state) do
-        update_camera = fn ->
-            Mnesia.write({:node, message.id, message.data})
-        end
-        Mnesia.transaction(update_camera) |> IO.inspect
-        Mnesia.dirty_read({:node, message.id})
-        {:noreply, state}
-    end
-
     def handle_info(message = %Message{}, state) do
         GenEvent.notify(state.events, %Event{:type => message.type, :value => message.data, :id => message.id})
         {:noreply, state}
     end
 
     def handle_info({:gen_event_EXIT, _handler, _reason}, state) do
-        add_event_handlers(state.events)
+        add_actuator_handlers(state.events)
         {:noreply, state}
     end
 

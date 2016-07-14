@@ -1,8 +1,9 @@
 defmodule Nodeponics.Node.Sensor.Analog do
     alias Nodeponics.Event
+    require Logger
 
     defmodule State do
-        defstruct min: 99999999, max: 0, mean: 0, current: 0, total: 0, events: nil, sensor_type: nil
+        defstruct min: 99999999, max: 0, mean: 0, current: 0, total: 0, events: nil, sensor_type: nil, id: nil
     end
 
     def start_link(events, type) do

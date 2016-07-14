@@ -12,6 +12,7 @@ use Mix.Config
 #
 config :nodeponics, udp_port: 5683, tcp_port: 8081, cipher_key: System.get_env("SKEY")
 config :nodeponics, multicast_address: {239, 255, 41, 11}
+config :nodeponics, sensor_keys: [:do, :humidity, :ph, :temperature, :water_temperature]
 config :nodeponics, tty: "/dev/ttyAMA0"
 config :movi, speed: 9600
 config :movi, callsign: "ROSETTA"

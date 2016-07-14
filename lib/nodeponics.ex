@@ -21,6 +21,7 @@ defmodule Nodeponics do
         {:ok, pid} = Nodeponics.Supervisor.start_link
         Movi.add_handler(Nodeponics.Voice.Handler)
         Nerves.InterimWiFi.setup(@interface, ssid: @ssid, key_mgmt: @key_management, psk: @psk)
+        IO.inspect start_writable_fs()
         train_voice_recognition
         {:ok, pid}
     end
@@ -45,4 +46,41 @@ defmodule Nodeponics do
         end)
     end
 
+    defp format_appdata() do
+        case System.cmd("mke2fs", ["-t", "ext4", "-L", "APPDATA", "/dev/mmcblk0p3"]) do
+            {_, 0} -> :ok
+            _ -> :error
+        end
+    end
+
+    defp maybe_mount_appdata() do
+        if !File.exists?("/mnt/.initialized") do
+            mount_appdata()
+        else
+            :ok
+        end
+    end
+
+    defp mount_appdata() do
+        case System.cmd("mount", ["-t", "ext4", "/dev/mmcblk0p3", "/mnt"]) do
+            {_, 0} ->
+                File.write("/mnt/.initialized", "mounted")
+                :ok
+            _ ->
+                :error
+        end
+    end
+
+    defp start_writable_fs() do
+        case maybe_mount_appdata() do
+            :ok -> :ok
+            :error ->
+                case format_appdata() do
+                    :ok ->
+                        mount_appdata()
+                        :ok
+                    :error -> :error
+                end
+        end
+    end
 end
