@@ -5,8 +5,8 @@ defmodule Nodeponics do
 
     @name __MODULE__
     @interface "wlan0"
-    @ssid "CRT-Internal"#System.get_env("SSID")
-    @psk "CRTUnderscoreSpelledOut"#System.get_env("PSK")
+    @ssid System.get_env("SSID")
+    @psk System.get_env("PSK")
     @key_management :"WPA-PSK"
 
     defmodule Event do
@@ -21,7 +21,7 @@ defmodule Nodeponics do
         {:ok, pid} = Nodeponics.Supervisor.start_link
         Movi.add_handler(Nodeponics.Voice.Handler)
         Nerves.InterimWiFi.setup(@interface, ssid: @ssid, key_mgmt: @key_management, psk: @psk)
-        IO.inspect start_writable_fs()
+        #IO.inspect start_writable_fs()
         train_voice_recognition
         {:ok, pid}
     end

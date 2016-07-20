@@ -34,7 +34,7 @@ defmodule Nodeponics.Mixfile do
         {:httpoison, "~> 0.8.3"},
         {:movi, github: "NationalAssociationOfRealtors/movi"},
         {:nerves_interim_wifi, github: "nerves-project/nerves_interim_wifi", branch: "master"},
-        {:nerves_firmware_http, github: "nerves-project/nerves_firmware_http"},
+        {:nerves_firmware_http, github: "NationalAssociationOfRealtors/nerves_firmware_http", branch: "master"},
         {:erlware_commons, "~> 0.21.0", override: true},
         {:ex_aws, "~> 0.5"},
     ]

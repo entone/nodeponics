@@ -60,7 +60,7 @@ defmodule Nodeponics.Node.SensorLogger do
 
     def open_logging(id) do
         Logger.info("Opening DETS...")
-        case :dets.open_file("/mnt/#{id}", [type: :bag, access: :read_write]) do
+        case :dets.open_file("/root/#{id}", [type: :bag, access: :read_write]) do
             {:ok, dets} -> dets
             {:EXIT, _} ->
                 Logger.info("Error opening DETS... repairing")

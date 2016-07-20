@@ -182,4 +182,8 @@ defmodule Nodeponics.Node do
         end)
         %{:sensors => sensors, :id => state.id}
     end
+
+    def terminate(reason, state) do
+        Logger.info "Terminating NODE: #{inspect state.id}"
+    end
 end

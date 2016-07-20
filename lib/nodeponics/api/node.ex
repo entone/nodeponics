@@ -17,6 +17,7 @@ defmodule Nodeponics.API.Node do
         Logger.info "Getting Nodes for #{state.user}"
         nodes = Enum.map(Supervisor.which_children(NodeSupervisor), fn({_id, pid, _type, module} = node) ->
             {:status, _pid, _mod, [_other, status, pid, _, [_header, _data, values]]} = :sys.get_status(pid)
+            IO.inspect :dets.info("/root/#{values[:id]}")
             values
         end)
         IO.inspect nodes
