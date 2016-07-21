@@ -33,7 +33,7 @@ defmodule Nodeponics.UDPServer do
     @interfaces ['wlan0', 'eth0']
 
     def start_link do
-        GenServer.start(__MODULE__, @port, name: __MODULE__)
+        GenServer.start_link(__MODULE__, @port, name: __MODULE__)
     end
 
     def send_message(message) do
