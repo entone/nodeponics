@@ -2,7 +2,6 @@ defmodule Nodeponics.Supervisor do
     use Supervisor
 
     @name __MODULE__
-    @tty Application.get_env(:nodeponics, :tty)
 
     def start_link do
         Supervisor.start_link(__MODULE__, :ok, name: @name)
@@ -10,10 +9,8 @@ defmodule Nodeponics.Supervisor do
 
     def init(:ok) do
         children = [
-            worker(Movi, [@tty]),
             worker(Nodeponics.UDPServer, []),
             worker(Nodeponics.TCPServer, []),
-            #worker(Nodeponics.UPNPServer, []),
             supervisor(Task.Supervisor, [[name: Nodeponics.DatagramSupervisor]]),
             supervisor(Nodeponics.NodeSupervisor, []),
         ]

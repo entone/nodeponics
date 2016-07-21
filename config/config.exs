@@ -13,9 +13,6 @@ use Mix.Config
 config :nodeponics, udp_port: 5683, tcp_port: 8081, cipher_key: System.get_env("SKEY")
 config :nodeponics, multicast_address: {239, 255, 41, 11}
 config :nodeponics, sensor_keys: [:do, :humidity, :ph, :temperature, :water_temperature]
-config :nodeponics, tty: "/dev/ttyAMA0"
-config :movi, speed: 9600
-config :movi, callsign: "ROSETTA"
 
 config :nerves_interim_wifi,
   regulatory_domain: "US"
@@ -43,5 +40,3 @@ config :ex_aws,
 # by uncommenting the line below and defining dev.exs, test.exs and such.
 # Configuration from the imported file will override the ones defined
 # here (which is why it is important to import them last).
-#
-import_config "words.exs"

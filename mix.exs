@@ -19,7 +19,7 @@ defmodule Nodeponics.Mixfile do
 
   def application do
     [
-        applications: [:logger, :cowboy, :httpoison, :timex, :sweet_xml, :xmerl, :nerves, :movi, :poison, :nerves_interim_wifi, :ex_aws, :nerves_firmware_http],
+        applications: [:logger, :cowboy, :httpoison, :timex, :sweet_xml, :xmerl, :nerves, :poison, :nerves_interim_wifi, :ex_aws, :nerves_firmware_http],
         mod: {Nodeponics, []}
     ]
   end
@@ -32,7 +32,6 @@ defmodule Nodeponics.Mixfile do
         {:cowboy, "~> 1.0"},
         {:sweet_xml, "~> 0.6.1"},
         {:httpoison, "~> 0.8.3"},
-        {:movi, github: "NationalAssociationOfRealtors/movi"},
         {:nerves_interim_wifi, github: "nerves-project/nerves_interim_wifi", branch: "master"},
         {:nerves_firmware_http, github: "NationalAssociationOfRealtors/nerves_firmware_http", branch: "master"},
         {:erlware_commons, "~> 0.21.0", override: true},
