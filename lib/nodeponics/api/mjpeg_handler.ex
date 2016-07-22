@@ -43,7 +43,7 @@ defmodule Nodeponics.API.MJPEGHandler do
         {method, req} = :cowboy_req.method(req)
         {node_id, req} = :cowboy_req.qs_val("node_id", req)
         {user_id, req} = :cowboy_req.qs_val("user_id", req)
-        node = String.to_atom(node_id)
+        node = String.to_existing_atom(node_id)
         id = "#{user_id}:#{node_id}"
         Logger.info "Getting Stream for: #{id}"
         headers = [
