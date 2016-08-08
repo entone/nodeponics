@@ -1,20 +1,11 @@
 # Nodeponics
 
-**TODO: Add description**
+Nodeponics is an automation system for aquaponic systems. It runs on small embedded computers such as a [RaspberryPi](https://www.raspberrypi.org/). At it's core Nodeponics is a UDP server and client that communicates with a [Particle.io Photon](https://www.particle.io/products/hardware/photon-wifi-dev-kit) based control system, [SensorNode](https://github.com/entone/SensorNode)
 
-## Installation
+Nodeponics monitors and controls several water quality measurements, such as temperature, Dissolved Oxygen and PH.
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed as:
+Along with logging data to local DETS tables, it also saves timelapse images to Amazon S3 for later viewing.
 
-  1. Add nodeponics to your list of dependencies in `mix.exs`:
+It provides a simple web frontend for monitoring which provides Websocket and MJPEG interfaces for data display and control.
 
-        def deps do
-          [{:nodeponics, "~> 0.0.1"}]
-        end
-
-  2. Ensure nodeponics is started before your application:
-
-        def application do
-          [applications: [:nodeponics]]
-        end
-
+Nodeponics is built using [Elixir](http://elixir-lang.org/) and [Nerves](http://nerves-project.org/)
