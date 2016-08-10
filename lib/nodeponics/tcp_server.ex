@@ -11,10 +11,12 @@ defmodule Nodeponics.TCPServer do
                 [
                     {"/", :cowboy_static, {:priv_file, :nodeponics, "index.html"}},
                     {"/static/[...]", :cowboy_static, {:priv_dir,  :nodeponics, "static"}},
-                    {"/timelapse", :cowboy_static, {:priv_file, :nodeponics, "timelapse.html"}},
+                    {"/timelapse/view", :cowboy_static, {:priv_file, :nodeponics, "timelapse.html"}},
+                    {"/timelapse", API.Timelapse, []},
                     {"/ws", API.Websocket, []},
                     {"/stream", API.MJPEGHandler, []},
                     {"/nodes", API.Node, []},
+
 
             ]}
         ])
