@@ -47,7 +47,7 @@ defmodule Nodeponics.Node.Timelapse do
     end
 
     def save_image(image, id, datetime) do
-        {:ok, date_str} = Timex.format(datetime, "{YYYY}{M}{D}{h24}{m}{s}")
+        {:ok, date_str} = Timex.format(datetime, "{YYYY}-{0M}-{0D}-{h24}-{m}-{s}")
         Logger.info("Saving Image")
         IO.inspect image
         IO.inspect byte_size(image)
