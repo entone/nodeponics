@@ -73,8 +73,8 @@ defmodule Nodeponics.API.Timelapse do
             {"pragma", "no-cache"},
         ]
         {:ok, req2} = :cowboy_req.chunked_reply(200, headers, req)
-        stream(node, id)
-        {:loop, req2, []}
+        {:ok, downloader} = stream(node, id)
+        {:loop, req2, %{:downloader => downloader}}
     end
 
     def info({:image, value}, req, state) do
@@ -95,6 +95,7 @@ defmodule Nodeponics.API.Timelapse do
     end
 
     def terminate(reason, req, state) do
+        Process.exit(state.downloader, :kill)
         :ok
     end
 
