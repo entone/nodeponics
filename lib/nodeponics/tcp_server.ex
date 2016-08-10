@@ -14,6 +14,7 @@ defmodule Nodeponics.TCPServer do
                     {"/ws", API.Websocket, []},
                     {"/stream", API.MJPEGHandler, []},
                     {"/nodes", API.Node, []},
+                    {"/timelapse", API.Timelapse, []},
             ]}
         ])
         {:ok, _} = :cowboy.start_http(:http,
