@@ -91,7 +91,7 @@ defmodule Nodeponics.API.Timelapse do
 
     def stream(node, id) do
         n = Atom.to_string(node)
-        ImageDownloader.start_link([self(), "20167", n])
+        ImageDownloader.start_link([self(), "2016-", n])
     end
 
     def terminate(reason, req, state) do
