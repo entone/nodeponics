@@ -73,8 +73,8 @@ defmodule Nodeponics.UDPServer do
             Task.Supervisor.start_child(DatagramSupervisor, fn ->
                 process(ip, port, data)
             end)
-            :inet.setopts(socket, [active: 1])
         end
+        :inet.setopts(socket, [active: 1])
         {:noreply, state}
     end
 
@@ -85,7 +85,7 @@ defmodule Nodeponics.UDPServer do
             active:          10,
             add_membership:  { @multicast, {0,0,0,0} },
             multicast_if:    {0,0,0,0},
-            multicast_loop:  false,
+            multicast_loop:  true,
             multicast_ttl:   4,
             reuseaddr:       true
         ]
