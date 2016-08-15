@@ -80,6 +80,7 @@ defmodule Nodeponics.UDPServer do
 
     def handle_info({:bound, info}, state) do
         Logger.info "Opening UDP"
+        :timer.sleep(1000)
         udp_options = [
             :binary,
             active:          10,
@@ -89,6 +90,7 @@ defmodule Nodeponics.UDPServer do
             multicast_ttl:   4,
             reuseaddr:       true
         ]
+
         {:ok, udp} = :gen_udp.open(state.port, udp_options)
         {:noreply, %State{state | udp: udp, ip: info.ipv4_address}}
     end
