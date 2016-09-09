@@ -11,11 +11,10 @@ defmodule Nodeponics.Node.SensorLogger do
     end
 
     def init(id) do
-        dets = open_logging(id)
-        {:ok, %State{:id => id, :dets => dets}}
+        {:ok, %State{:id => id}}
     end
 
-    def handle_event(%Event{:type => type, :value => value}, %State{:dets => dets} = state) when dets != nil do
+    def handle_event(%Event{:type => type, :value => value}, state) do
         t = Enum.any?(@sensor_keys, fn(k) -> k == type end)
         new_state =
             case t do
@@ -40,20 +39,24 @@ defmodule Nodeponics.Node.SensorLogger do
             end
         cond do
             diff >= state.refresh ->
-                :ok = write_data(type, value, now, state.dets)
+                :ok = write_data(type, value, now, state.id)
                 %State{state | :lasts => Map.merge(state.lasts, %{type => now})} |> IO.inspect
             true ->
                 state
         end
     end
 
-    defp write_data(type, value, now, dets) do
+    defp write_data(type, value, now, id) do
         obj = {type, value, now}
         Logger.info("Writing: #{inspect obj}")
+        dets = open_logging(id)
         case :dets.insert(dets, obj) do
-            :ok -> :ok
+            :ok ->
+                :dets.close(dets)
+                :ok
             {:error, reason} ->
                 Logger.info reason
+                :dets.close(dets)
                 :error
         end
     end
@@ -67,11 +70,5 @@ defmodule Nodeponics.Node.SensorLogger do
                 :timer.sleep(200)
                 open_logging(id)
         end
-    end
-
-    def terminate(reason, state) do
-        Logger.info "Terminating, closing DETS"
-        :dets.close(state.dets)
-        :ok
     end
 end

@@ -91,6 +91,13 @@ defmodule Nodeponics.UDPServer do
             reuseaddr:       true
         ]
 
+        Mdns.Server.add_service(%Mdns.Server.Service{
+            domain: "nodeponics.local",
+            data: info.ipv4_address,
+            ttl: 120,
+            type: :a
+        })
+        
         {:ok, udp} = :gen_udp.open(state.port, udp_options)
         {:noreply, %State{state | udp: udp, ip: info.ipv4_address}}
     end

@@ -19,7 +19,7 @@ defmodule Nodeponics.Mixfile do
 
   def application do
     [
-        applications: [:logger, :cowboy, :httpoison, :timex, :sweet_xml, :xmerl, :nerves, :poison, :nerves_interim_wifi, :ex_aws, :nerves_firmware_http, :nerves_ntp],
+        applications: [:logger, :cowboy, :httpoison, :timex, :sweet_xml, :xmerl, :nerves, :poison, :nerves_interim_wifi, :ex_aws, :nerves_firmware_http, :nerves_ntp, :mdns],
         mod: {Nodeponics, []}
     ]
   end
@@ -37,6 +37,7 @@ defmodule Nodeponics.Mixfile do
         {:erlware_commons, "~> 0.21.0", override: true},
         {:ex_aws, "~> 0.5"},
         {:nerves_ntp, "~> 0.1.0"},
+        {:mdns, "~> 0.1.2"}
     ]
   end
 

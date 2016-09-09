@@ -18,6 +18,8 @@ defmodule Nodeponics do
 
     def start(_type, _args) do
         {:ok, pid} = Nodeponics.Supervisor.start_link
+        Logger.debug("SSID: #{@ssid}")
+        Logger.debug("PSK: #{@psk}")
         Nerves.InterimWiFi.setup(@interface, ssid: @ssid, key_mgmt: @key_management, psk: @psk)
         {:ok, pid}
     end
