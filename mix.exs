@@ -37,7 +37,7 @@ defmodule Nodeponics.Mixfile do
         {:erlware_commons, "~> 0.21.0", override: true},
         {:ex_aws, "~> 0.5"},
         {:nerves_ntp, "~> 0.1.0"},
-        {:mdns, "~> 0.1.2"}
+        {:mdns, "~> 0.1.3"}
     ]
   end
 

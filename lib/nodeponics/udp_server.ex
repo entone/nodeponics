@@ -80,10 +80,17 @@ defmodule Nodeponics.UDPServer do
 
     def handle_info({:bound, info}, state) do
         Logger.info "Opening UDP"
-        Application.stop(:mdns)
         :timer.sleep(1000)
-        Application.start(:mdns)
-        :timer.sleep(1000)
+        {:ok, ip} = :inet_parse.address(to_char_list(info.ipv4_address))
+        Logger.info "#{inspect ip}"
+        Mdns.Server.set_ip(ip)
+        Mdns.Server.add_service(%Mdns.Server.Service{
+            domain: "nodeponics.local",
+            data: :ip,
+            ttl: 120,
+            type: :a
+        })
+        Mdns.Server.start()
         udp_options = [
             :binary,
             active:          10,
@@ -93,15 +100,6 @@ defmodule Nodeponics.UDPServer do
             multicast_ttl:   4,
             reuseaddr:       true
         ]
-        Logger.debug("#{inspect info}")
-        {:ok, ip} = :inet_parse.address(to_char_list(info.ipv4_address))
-        Mdns.Server.add_service(%Mdns.Server.Service{
-            domain: "nodeponics.local",
-            data: ip,
-            ttl: 120,
-            type: :a
-        })
-
         {:ok, udp} = :gen_udp.open(state.port, udp_options)
         {:noreply, %State{state | udp: udp, ip: info.ipv4_address}}
     end
