@@ -49,16 +49,17 @@ defmodule Nodeponics.Node.SensorLogger do
     defp write_data(type, value, now, id) do
         obj = {type, value, now}
         Logger.info("Writing: #{inspect obj}")
-        dets = open_logging(id)
-        case :dets.insert(dets, obj) do
-            :ok ->
-                :dets.close(dets)
-                :ok
-            {:error, reason} ->
-                Logger.info reason
-                :dets.close(dets)
-                :error
-        end
+        #dets = open_logging(id)
+        #case :dets.insert(dets, obj) do
+        #    :ok ->
+        #        :dets.close(dets)
+        #        :ok
+        #    {:error, reason} ->
+        #        Logger.info reason
+        #        :dets.close(dets)
+        #        :error
+        #end
+        :ok
     end
 
     def open_logging(id) do
